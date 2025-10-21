@@ -7,8 +7,10 @@
 //! https://llvm.org/docs/LangRef.html
 
 #![no_std]
+#![allow(dead_code)]
 extern crate alloc;
 
+mod instruction;
 pub mod module;
 pub mod types;
 pub mod value;
@@ -19,7 +21,7 @@ use alloc::string::String;
 pub trait IRComponent {
     /// Appends the corresponding LLVM IR for this component onto the string.
     fn append_to_string(&self, string: &mut String);
-    
+
     /// Generates the corresponding LLVM IR for this component into a new string buffer,
     /// and returns the output.
     fn emit(&self) -> String {

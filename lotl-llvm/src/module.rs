@@ -1,8 +1,11 @@
-use crate::types::Type;
-use crate::value::{Constant, GlobalIdentifier};
 use crate::IRComponent;
-use alloc::boxed::Box;
 use alloc::string::String;
+
+mod function;
+mod globals;
+
+pub use function::*;
+pub use globals::*;
 
 /// Represents an LLVM module.
 ///
@@ -58,93 +61,10 @@ impl IRComponent for LinkageType {
 /// A marker trait, indicating this is a valid top-level component of a module.
 pub trait ModuleComponent: IRComponent {}
 
-/// Global variables define regions of memory allocated at compilation time instead of run-time.
-pub struct GlobalVariable {
-    /// The name of the global variable.
-    name: GlobalIdentifier,
-    /// The linkage type of the value, defaults to LinkageType::External
-    linkage: Option<LinkageType>,
-    /// The type of the global variable.
-    ty: Box<dyn Type>,
-    /// The default value of the global variable.
-    value: Option<Box<dyn Constant>>,
-}
-
-impl GlobalVariable {
-    pub fn new<T: Type + 'static>(name: GlobalIdentifier, ty: T) -> GlobalVariable {
-        GlobalVariable {
-            name,
-            ty: Box::new(ty),
-            linkage: None,
-            value: None,
-        }
-    }
-
-    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
-        self.linkage = Some(linkage);
-        self
-    }
-    pub fn with_value<C: Constant + 'static>(mut self, value: C) -> Self {
-        self.value = Some(Box::new(value));
-        self
-    }
-}
-
-impl IRComponent for GlobalVariable {
-    fn append_to_string(&self, string: &mut String) {
-        self.name.append_to_string(string);
-        string.push_str(" = ");
-        self.linkage.iter().for_each(|e| {
-            e.append_to_string(string);
-            string.push(' ');
-        });
-        string.push_str("global ");
-        self.ty.append_to_string(string);
-        string.push(' ');
-        self.value.iter().for_each(|e| {
-            e.append_to_string(string);
-        });
-    }
-}
-
-impl ModuleComponent for GlobalVariable {}
-
-/// Global variables define regions of memory allocated at compilation time instead of run-time.
-pub struct GlobalFunction {
-    /// The name of the function.
-    name: GlobalIdentifier,
-    /// The linkage type of the function, defaults to LinkageType::External
-    linkage: Option<LinkageType>,
-}
-
-impl GlobalFunction {
-    pub fn new(name: GlobalIdentifier) -> Self {
-        GlobalFunction {
-            name,
-            linkage: None,
-        }
-    }
-
-    pub fn linkage(mut self, linkage: LinkageType) -> Self {
-        self.linkage = Some(linkage);
-        self
-    }
-}
-
-impl IRComponent for GlobalFunction {
-    fn append_to_string(&self, string: &mut String) {
-        string.push_str("define void ");
-        self.name.append_to_string(string);
-        string.push('(');
-        string.push(')');
-    }
-}
-
-impl ModuleComponent for GlobalFunction {}
-
 #[cfg(test)]
 mod tests {
-    use crate::module::{GlobalVariable, LinkageType};
+    use crate::module::GlobalVariable;
+    use crate::module::LinkageType;
     use crate::types::Types;
     use crate::value::Values;
     use crate::IRComponent;

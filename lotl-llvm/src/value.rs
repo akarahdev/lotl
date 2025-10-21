@@ -30,7 +30,7 @@ impl Values {
         }
     }
 
-    fn local(name: &str) -> LocalIdentifier
+    pub(crate) fn local(name: &str) -> LocalIdentifier
     where
         Self: Sized,
     {
@@ -40,6 +40,7 @@ impl Values {
     }
 }
 
+#[derive(Clone)]
 pub struct GlobalIdentifier {
     name: String,
 }
@@ -52,6 +53,7 @@ impl IRComponent for GlobalIdentifier {
 }
 impl Value for GlobalIdentifier {}
 
+#[derive(Clone)]
 pub struct LocalIdentifier {
     pub name: String,
 }
