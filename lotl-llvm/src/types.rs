@@ -11,35 +11,31 @@ pub trait Type: IRComponent {}
 pub struct Types;
 
 impl Types {
-    /// The integer type is a very simple type that simply specifies an arbitrary bit width
-    /// for the integer type desired.
+    /// The integer type is a type that represents an integer number. It requires a bit width
+    /// to specify the size of the integer, but the space in memory will be rounded up to the
+    /// nearest byte.
     ///
-    /// Any bit width from 1 bit to 2^23(about 8 million) can be specified.
-    pub fn integer(width: u64) -> impl Type {
+    /// Any bit width from 1 bit to 2^23(about 8 million) can be specified. Anything above that will
+    /// result in an error.
+    pub fn integer(width: u32) -> impl Type {
+        if width >= 8388607 {
+            panic!("Invalid width of integer type: {}", width);
+        }
         Integer { width }
     }
 
-    /// The pointer type is used to specify memory locations.
-    ///
-    /// Pointers are commonly used to reference objects in memory.
+    /// The pointer type is used to specify memory locations, to reference objects in memory.
     pub fn ptr() -> impl Type {
         Ptr
     }
 
-    /// The array type is a very simple derived type that arranges elements sequentially in memory.
+    /// The array type is a type that arranges elements sequentially in memory.
     ///
     /// The array type requires a size (number of elements) and an underlying data type.
     ///
     /// There is no restriction on indexing beyond the end of the array implied by a static type
     /// (though there are restrictions on indexing beyond the bounds of an allocated object in
     /// some cases).
-    ///
-    /// This means that single-dimension ‘variable sized array’ addressing can be implemented in
-    /// LLVM with a zero length array type.
-    ///
-    /// An implementation of ‘pascal style arrays’ in LLVM could use the type
-    /// `Types::struct().and(Types::integer(32)).and(Types::array(0, Types::float()))`,
-    /// for example.
     pub fn array<T: Type + 'static>(size: u64, subtype: T) -> impl Type {
         Array {
             size,
@@ -47,7 +43,7 @@ impl Types {
         }
     }
 
-    /// The void type does not represent any value and has no size.
+    /// The void type does not represent any value, and has no size.
     pub fn void() -> impl Type {
         Void
     }
@@ -55,9 +51,6 @@ impl Types {
     /// The function type can be thought of as a function signature.
     ///
     /// It consists of a return type and a list of formal parameter types.
-    ///
-    /// The return type of any function type can be a void type or first class type
-    /// — except for label and metadata types.
     pub fn function<O: Type + 'static>(
         return_type: O,
         parameters: Vec<Box<dyn Type>>,
@@ -81,7 +74,7 @@ macro_rules! fn_ty {
 }
 
 struct Integer {
-    pub width: u64,
+    pub width: u32,
 }
 
 impl IRComponent for Integer {

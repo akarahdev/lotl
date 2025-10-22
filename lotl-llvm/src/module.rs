@@ -15,35 +15,18 @@ pub struct Module {}
 
 /// Represents the Linkage Type of Global Variables and Function.
 pub enum LinkageType {
-    /// Global values with “private” linkage are only directly accessible by objects in the current
+    /// Global values with this linkage are only directly accessible by objects in the current
     /// module.
-    ///
-    /// In particular, linking code into a module with a private global value may cause the private
-    /// to be renamed as necessary to avoid collisions.
-    ///
-    /// Because the symbol is private to the module, all references can be updated.
-    ///
-    /// This doesn’t show up in any symbol table in the object file.
     Private,
-    /// Similar to private, but the value shows as a local symbol (STB_LOCAL in the case of ELF)
-    /// in the object file.
-    ///
-    /// This corresponds to the notion of the ‘static’ keyword in C.
+    /// Similar to private, but the value shows as a local symbol in the object file.
     Internal,
-    /// Globals with “available_externally” linkage are never emitted into the object file
-    /// corresponding to the LLVM module. From the linker’s perspective, an available_externally
-    /// global is equivalent to an external declaration.
-    ///
-    /// They exist to allow inlining and other optimizations to take place given knowledge of
-    /// the definition of the global, which is known to be somewhere outside the module.
-    ///
-    /// Globals with available_externally linkage are allowed to be discarded at will,
-    /// and allow inlining and other optimizations.
+    /// Globals with this linkage are never emitted into the object file
+    /// corresponding to the LLVM module. From the linker’s perspective, a
+    /// global with this linkage type is equivalent to an external declaration.
     ///
     /// This linkage type is only allowed on definitions, not declarations.
     AvailableExternally,
-    /// This is the default linkage type, meaning that  it participates in linkage and
-    /// can be used to resolve external symbol references.
+    /// This means the object participates in linkage and can be used to resolve external dependencies.
     External,
 }
 
