@@ -5,16 +5,16 @@ use alloc::string::String;
 /// Represents a valid LLVM value.
 #[derive(Clone, Debug)]
 pub enum Value {
-    /// no im docing later
+    /// Represents a constant integer value. The value is of integer type.
     Integer(String, Type),
-    /// no im docing later
+    /// Represents a global identifier. This is always of pointer type.
     GlobalIdentifier(String, Type),
-    /// no im docing later
+    /// Represents a local identifier in a function.
     LocalIdentifier(String, Type),
 }
 
 impl Value {
-    /// no im docing later
+    /// Returns the type associated with this value.
     pub fn ty(&self) -> &Type {
         match self {
             Value::Integer(_, ty) => ty,

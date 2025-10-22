@@ -6,15 +6,15 @@ use alloc::vec::Vec;
 /// Represents an LLVM IR Type.
 #[derive(Clone, Debug)]
 pub enum Type {
-    /// no im docing later
+    /// Represents the LLVM integer type, with the number of bits specified.
     Integer(u32),
-    /// no im docing later
+    /// Represents the LLVM array type, with the size and element type specified.
     Array(u32, Box<Type>),
-    /// no im docing later
+    /// Represents a pointer into memory.
     Ptr,
-    /// no im docing later
+    /// Represents the empty type with no size and value.
     Void,
-    /// no im docing later
+    /// Represents a function that can be called.
     Function(Box<Type>, Vec<Box<Type>>),
 }
 
