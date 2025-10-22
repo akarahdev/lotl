@@ -49,7 +49,7 @@ impl BasicBlock {
     }
 
     pub(crate) fn create_child<F: FnOnce(&mut BasicBlock)>(&mut self, f: F) -> String {
-        let mut bb = BasicBlock::child(&self);
+        let mut bb = BasicBlock::child(self);
         f(&mut bb);
         let label = bb.label.clone();
         self.children.push(bb);

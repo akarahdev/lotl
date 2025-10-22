@@ -4,12 +4,16 @@ use alloc::string::String;
 
 /// Represents a valid LLVM value.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum Value {
     /// Represents a constant integer value. The value is of integer type.
+    #[non_exhaustive]
     Integer(String, Type),
     /// Represents a global identifier. This is always of pointer type.
+    #[non_exhaustive]
     GlobalIdentifier(String, Type),
     /// Represents a local identifier in a function.
+    #[non_exhaustive]
     LocalIdentifier(String, Type),
 }
 
@@ -27,14 +31,14 @@ impl Value {
 impl IRComponent for Value {
     fn append_to_string(&self, string: &mut String) {
         match self {
-            Value::Integer(value, ty) => {
+            Value::Integer(value, _) => {
                 string.push_str(value);
             }
-            Value::GlobalIdentifier(name, ty) => {
+            Value::GlobalIdentifier(name, _) => {
                 string.push('@');
                 string.push_str(name);
             }
-            Value::LocalIdentifier(name, ty) => {
+            Value::LocalIdentifier(name, _) => {
                 string.push('%');
                 string.push_str(name);
             }

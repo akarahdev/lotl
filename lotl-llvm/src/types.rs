@@ -5,16 +5,22 @@ use alloc::vec::Vec;
 
 /// Represents an LLVM IR Type.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum Type {
     /// Represents the LLVM integer type, with the number of bits specified.
+    #[non_exhaustive]
     Integer(u32),
     /// Represents the LLVM array type, with the size and element type specified.
+    #[non_exhaustive]
     Array(u32, Box<Type>),
     /// Represents a pointer into memory.
+    #[non_exhaustive]
     Ptr,
     /// Represents the empty type with no size and value.
+    #[non_exhaustive]
     Void,
     /// Represents a function that can be called.
+    #[non_exhaustive]
     Function(Box<Type>, Vec<Box<Type>>),
 }
 
@@ -23,12 +29,12 @@ impl IRComponent for Type {
         match self {
             Type::Integer(width) => {
                 string.push('i');
-                string.push_str(&*width.to_string());
+                string.push_str(&width.to_string());
             }
             Type::Array(size, subtype) => {
                 string.push('[');
                 string.push(' ');
-                string.push_str(&*size.to_string());
+                string.push_str(&size.to_string());
                 string.push_str(" x ");
                 subtype.append_to_string(string);
                 string.push(' ');
@@ -44,7 +50,7 @@ impl IRComponent for Type {
                 return_type.append_to_string(string);
                 string.push('(');
                 string.push_str(
-                    &*parameters
+                    &parameters
                         .iter()
                         .map(|x| x.emit())
                         .collect::<Vec<_>>()

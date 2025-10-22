@@ -56,7 +56,7 @@ impl IRComponent for GlobalFunction {
         string.push_str(&self.name);
         string.push('(');
         string.push_str(
-            &*self
+            &self
                 .parameters
                 .iter()
                 .map(|p| p.emit())
