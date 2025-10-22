@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlock, Instruction};
+use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -69,25 +69,29 @@ impl IRComponent for Unreachable {
 }
 impl Instruction for Unreachable {}
 
-impl BasicBlock {
-    pub fn ret_void(&mut self) {
+impl BasicBlockHandle<'_> {
+    pub fn ret_void(mut self) {
         self.instructions.push(Box::new(Return { value: None }));
     }
 
-    pub fn ret(&mut self, value: Value) {
+    pub fn ret(mut self, value: Value) {
         self.instructions
             .push(Box::new(Return { value: Some(value) }));
     }
 
-    pub fn br<F: FnOnce(&mut BasicBlock)>(&mut self, label: F) {
+    pub fn unreachable(mut self) {
+        self.instructions.push(Box::new(Unreachable));
+    }
+
+    pub fn br<F: FnOnce(BasicBlockHandle)>(mut self, label: F) {
         let br = Box::new(BranchConst {
             true_label: self.create_child(label),
         });
         self.instructions.push(br);
     }
 
-    pub fn br_if<F1: FnOnce(&mut BasicBlock), F2: FnOnce(&mut BasicBlock)>(
-        &mut self,
+    pub fn br_if<F1: FnOnce(BasicBlockHandle), F2: FnOnce(BasicBlockHandle)>(
+        mut self,
         value: Value,
         true_label: F1,
         false_label: F2,
@@ -115,7 +119,27 @@ mod tests {
             block.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
         });
         let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
-        assert_eq!(f.emit(), "define i32 @main() { entry: ret i32 120 }");
+        assert_eq!(
+            f.emit(),
+            "define i32 @main() { \
+                entry: ret i32 120 \
+            }"
+        );
+    }
+
+    #[test]
+    fn build_unreachable_function() {
+        let body = FunctionBody::new(|block| {
+            block.unreachable();
+        });
+        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        assert_eq!(
+            f.emit(),
+            "define i32 @main() { \
+                entry: \
+                    unreachable \
+            }"
+        );
     }
 
     #[test]
@@ -134,7 +158,14 @@ mod tests {
         let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
         assert_eq!(
             f.emit(),
-            "define i32 @main() { entry: br i1 1, label %bb0, label %bb1 bb0: ret i32 120 bb1: ret i32 240 }"
+            "define i32 @main() { \
+                entry: \
+                    br i1 1, label %bb0, label %bb1 \
+                bb0: \
+                    ret i32 120 \
+                bb1: \
+                    ret i32 240 \
+            }"
         );
     }
 
@@ -148,7 +179,12 @@ mod tests {
         let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
         assert_eq!(
             f.emit(),
-            "define i32 @main() { entry: br label %bb0 bb0: ret i32 120 }"
+            "define i32 @main() { \
+                entry: \
+                    br label %bb0 \
+                bb0: \
+                    ret i32 120 \
+            }"
         );
     }
 }

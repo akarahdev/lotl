@@ -1,4 +1,4 @@
-use crate::instruction::BasicBlock;
+use crate::instruction::{BasicBlock, BasicBlockHandle};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -32,9 +32,9 @@ impl BasicBlock {
         }
     }
 
-    pub(crate) fn create_child<F: FnOnce(&mut BasicBlock)>(&mut self, f: F) -> String {
+    pub(crate) fn create_child<F: FnOnce(BasicBlockHandle)>(&mut self, f: F) -> String {
         let mut bb = BasicBlock::child(self);
-        f(&mut bb);
+        f(BasicBlockHandle(&mut bb));
         let label = bb.label.clone();
         self.children.push(bb);
         label
