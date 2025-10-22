@@ -104,17 +104,17 @@ impl BasicBlock {
 #[cfg(test)]
 mod tests {
     use crate::module::{FunctionBody, GlobalFunction};
-    use crate::types::Type;
-    use crate::value::Value;
+    use crate::types::Types;
+    use crate::value::Values;
     use crate::IRComponent;
-    use alloc::string::ToString;
+    use deranged::RangedU32;
 
     #[test]
     fn build_returning_function() {
         let body = FunctionBody::new(|block| {
-            block.ret(Value::Integer("120".to_string(), Type::Integer(32)));
+            block.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
         });
-        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
+        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
         assert_eq!(f.emit(), "define i32 @main() { entry: ret i32 120 }");
     }
 
@@ -122,16 +122,16 @@ mod tests {
     fn build_cond_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br_if(
-                Value::Integer("1".to_string(), Type::Integer(1)),
+                Values::integer("1", RangedU32::new(1).unwrap()).unwrap(),
                 |true_label| {
-                    true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
+                    true_label.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
                 },
                 |false_label| {
-                    false_label.ret(Value::Integer("240".to_string(), Type::Integer(32)));
+                    false_label.ret(Values::integer("240", RangedU32::new(32).unwrap()).unwrap());
                 },
             );
         });
-        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
+        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br i1 1, label %bb0, label %bb1 bb0: ret i32 120 bb1: ret i32 240 }"
@@ -142,10 +142,10 @@ mod tests {
     fn build_static_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br(|true_label| {
-                true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
+                true_label.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
             });
         });
-        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
+        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br label %bb0 bb0: ret i32 120 }"

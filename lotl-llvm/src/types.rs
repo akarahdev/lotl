@@ -2,6 +2,7 @@ use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use deranged::RangedU32;
 
 /// Represents an LLVM IR Type.
 #[derive(Clone, Debug)]
@@ -62,21 +63,32 @@ impl IRComponent for Type {
     }
 }
 
+/// A structure with implementations to generate type instances.
+pub struct Types;
+
+impl Types {
+    /// Generates a new integer type, with a maximum width of (2^22 - 1)
+    pub fn integer(width: RangedU32<0, 8388607>) -> Type {
+        Type::Integer(width.get())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::types::Type;
+    use crate::types::{Type, Types};
     use crate::IRComponent;
     use alloc::boxed::Box;
+    use deranged::RangedU32;
 
     #[test]
     pub fn test_integers() {
-        let int = Type::Integer(32);
+        let int = Types::integer(RangedU32::new(32).unwrap());
         assert_eq!(int.emit(), "i32");
     }
 
     #[test]
     pub fn test_arrays() {
-        let int = Type::Array(4, Box::new(Type::Integer(32)));
+        let int = Type::Array(4, Box::new(Types::integer(RangedU32::new(32).unwrap())));
         assert_eq!(int.emit(), "[ 4 x i32 ]");
     }
 }
