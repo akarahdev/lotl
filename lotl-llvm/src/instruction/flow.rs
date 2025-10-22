@@ -6,7 +6,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
 
-pub struct Return {
+struct Return {
     ty: Box<dyn Type>,
     value: Option<Box<dyn Value>>,
 }
@@ -23,7 +23,7 @@ impl IRComponent for Return {
 }
 impl Instruction for Return {}
 
-pub struct BranchCond {
+struct BranchCond {
     cond: (Box<dyn Type>, Box<dyn Value>),
     true_label: LocalIdentifier,
     false_label: LocalIdentifier,
@@ -45,7 +45,7 @@ impl IRComponent for BranchCond {
 }
 impl Instruction for BranchCond {}
 
-pub struct BranchConst {
+struct BranchConst {
     true_label: LocalIdentifier,
 }
 
@@ -56,6 +56,14 @@ impl IRComponent for BranchConst {
     }
 }
 impl Instruction for BranchConst {}
+
+struct Unreachable;
+impl IRComponent for Unreachable {
+    fn append_to_string(&self, string: &mut String) {
+        string.push_str("unreachable");
+    }
+}
+impl Instruction for Unreachable {}
 
 impl BasicBlock {
     pub fn ret_void(&mut self) {

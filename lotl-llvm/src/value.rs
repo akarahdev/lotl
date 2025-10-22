@@ -1,13 +1,16 @@
 use crate::IRComponent;
 use alloc::string::String;
 
+/// Represents a valid LLVM value.
 #[allow(unused)]
 pub trait Value: IRComponent {}
 
+/// A structure holding methods constructing any valid LLVM value.
 pub struct Values;
 
 impl Values {
-    pub(crate) fn integer(value: &str) -> Option<Integer>
+    /// Creates a constant integer that can be used as a value.
+    pub fn integer(value: &str) -> Option<impl Constant>
     where
         Self: Sized,
     {
@@ -21,7 +24,8 @@ impl Values {
         })
     }
 
-    pub(crate) fn global(name: &str) -> GlobalIdentifier
+    /// Creates a constant global identifier.
+    pub fn global(name: &str) -> GlobalIdentifier
     where
         Self: Sized,
     {
@@ -30,7 +34,8 @@ impl Values {
         }
     }
 
-    pub(crate) fn local(name: &str) -> LocalIdentifier
+    /// Creates a constant local identifier.
+    pub fn local(name: &str) -> LocalIdentifier
     where
         Self: Sized,
     {
@@ -40,8 +45,11 @@ impl Values {
     }
 }
 
+/// LLVM identifiers come in two basic types: global and local.
+/// Global identifiers (functions, global variables) begin with the '@' character.
 #[derive(Clone)]
 pub struct GlobalIdentifier {
+    /// The name of the identifier
     name: String,
 }
 
@@ -53,8 +61,11 @@ impl IRComponent for GlobalIdentifier {
 }
 impl Value for GlobalIdentifier {}
 
+/// LLVM identifiers come in two basic types: global and local.
+/// Local identifiers (register names, types) begin with the '%' character.
 #[derive(Clone)]
 pub struct LocalIdentifier {
+    /// The name of the identifier
     pub name: String,
 }
 
@@ -66,9 +77,10 @@ impl IRComponent for LocalIdentifier {
 }
 impl Value for LocalIdentifier {}
 
+/// Represents a valid LLVM IR constant.
 pub trait Constant: Value {}
 
-pub struct Integer {
+struct Integer {
     value: String,
 }
 

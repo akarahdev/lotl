@@ -7,12 +7,16 @@
 //! https://llvm.org/docs/LangRef.html
 
 #![no_std]
+#![deny(missing_docs)]
 #![allow(dead_code)]
 extern crate alloc;
 
 mod instruction;
+/// The module for LLVM IR modules
 pub mod module;
+/// The module for LLVM IR types
 pub mod types;
+/// The module for LLVM IR values
 pub mod value;
 
 use alloc::string::String;

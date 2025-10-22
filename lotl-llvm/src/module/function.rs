@@ -17,6 +17,7 @@ pub struct GlobalFunction {
 }
 
 impl GlobalFunction {
+    /// Creates a new global function from a name and signature.
     pub fn new(name: GlobalIdentifier, ty: FunctionPtr) -> Self {
         GlobalFunction {
             name,
@@ -26,11 +27,13 @@ impl GlobalFunction {
         }
     }
 
+    /// Defines the linkage type of the global function.
     pub fn linkage(mut self, linkage: LinkageType) -> Self {
         self.linkage = Some(linkage);
         self
     }
 
+    /// Defines the body of the global function.
     pub fn body(mut self, body: FunctionBody) -> Self {
         self.body = Some(body);
         self
@@ -66,11 +69,14 @@ impl IRComponent for GlobalFunction {
 
 impl ModuleComponent for GlobalFunction {}
 
+/// Represents a function body in LLVM IR.
 pub struct FunctionBody {
     entry: BasicBlock,
 }
 
 impl FunctionBody {
+    /// Creates a new function body. This gives you a reference to a Basic Block, which is
+    /// the entrypoint of the function body.
     pub fn new<F: FnOnce(&mut BasicBlock)>(handler: F) -> Self {
         let mut f = FunctionBody {
             entry: BasicBlock::entry("entry"),

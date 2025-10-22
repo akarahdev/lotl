@@ -1,5 +1,6 @@
-mod arithmetic;
+mod binop;
 mod flow;
+mod unop;
 
 use crate::value::{LocalIdentifier, Values};
 use crate::IRComponent;

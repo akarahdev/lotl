@@ -1,9 +1,9 @@
-use alloc::boxed::Box;
-use alloc::string::String;
-use crate::IRComponent;
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
 use crate::value::{Constant, GlobalIdentifier};
+use crate::IRComponent;
+use alloc::boxed::Box;
+use alloc::string::String;
 
 /// Global variables define regions of memory allocated at compilation time instead of run-time.
 pub struct GlobalVariable {
@@ -18,6 +18,7 @@ pub struct GlobalVariable {
 }
 
 impl GlobalVariable {
+    /// Creates a new global variable with a name and a type.
     pub fn new<T: Type + 'static>(name: GlobalIdentifier, ty: T) -> GlobalVariable {
         GlobalVariable {
             name,
@@ -27,10 +28,13 @@ impl GlobalVariable {
         }
     }
 
+    /// Provides a linkage type to the global variable.
     pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
         self.linkage = Some(linkage);
         self
     }
+    
+    /// Provides a value to the global variable.
     pub fn with_value<C: Constant + 'static>(mut self, value: C) -> Self {
         self.value = Some(Box::new(value));
         self
