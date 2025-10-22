@@ -2,7 +2,8 @@ mod binop;
 mod flow;
 mod unop;
 
-use crate::value::{LocalIdentifier, Values};
+use crate::types::Type;
+use crate::value::Value;
 use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::format;
@@ -47,17 +48,20 @@ impl BasicBlock {
         }
     }
 
-    pub(crate) fn create_child<F: FnOnce(&mut BasicBlock)>(&mut self, f: F) -> LocalIdentifier {
+    pub(crate) fn create_child<F: FnOnce(&mut BasicBlock)>(&mut self, f: F) -> String {
         let mut bb = BasicBlock::child(&self);
-        let id = Values::local(&bb.label);
         f(&mut bb);
+        let label = bb.label.clone();
         self.children.push(bb);
-        id
+        label
     }
 
-    pub(crate) fn create_local_register(&self) -> LocalIdentifier {
+    pub(crate) fn create_local_register(&self, ty: Type) -> (String, Value) {
         let idx = self.basic_block_index.fetch_add(1, Ordering::AcqRel);
-        Values::local(&format!("r{idx}"))
+        (
+            format!("r{idx}"),
+            Value::LocalIdentifier(format!("r{idx}"), ty),
+        )
     }
 }
 

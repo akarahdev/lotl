@@ -1,117 +1,67 @@
+use crate::types::Type;
 use crate::IRComponent;
 use alloc::string::String;
 
 /// Represents a valid LLVM value.
-#[allow(unused)]
-pub trait Value: IRComponent {}
+#[derive(Clone, Debug)]
+pub enum Value {
+    /// no im docing later
+    Integer(String, Type),
+    /// no im docing later
+    GlobalIdentifier(String, Type),
+    /// no im docing later
+    LocalIdentifier(String, Type),
+}
 
-/// A structure holding methods constructing any valid LLVM value.
-pub struct Values;
+impl Value {
+    /// no im docing later
+    pub fn ty(&self) -> &Type {
+        match self {
+            Value::Integer(_, ty) => ty,
+            Value::GlobalIdentifier(_, ty) => ty,
+            Value::LocalIdentifier(_, ty) => ty,
+        }
+    }
+}
 
-impl Values {
-    /// Creates a constant integer that can be used as a value.
-    pub fn integer(value: &str) -> Option<impl Constant>
-    where
-        Self: Sized,
-    {
-        for char in value.chars() {
-            if !char.is_digit(10) {
-                return None;
+impl IRComponent for Value {
+    fn append_to_string(&self, string: &mut String) {
+        match self {
+            Value::Integer(value, ty) => {
+                string.push_str(value);
+            }
+            Value::GlobalIdentifier(name, ty) => {
+                string.push('@');
+                string.push_str(name);
+            }
+            Value::LocalIdentifier(name, ty) => {
+                string.push('%');
+                string.push_str(name);
             }
         }
-        Some(Integer {
-            value: String::from(value),
-        })
-    }
-
-    /// Creates a constant global identifier.
-    pub(crate) fn global(name: &str) -> GlobalIdentifier
-    where
-        Self: Sized,
-    {
-        GlobalIdentifier {
-            name: String::from(name),
-        }
-    }
-
-    /// Creates a constant local identifier.
-    pub(crate) fn local(name: &str) -> LocalIdentifier
-    where
-        Self: Sized,
-    {
-        LocalIdentifier {
-            name: String::from(name),
-        }
     }
 }
-
-/// LLVM identifiers come in two basic types: global and local.
-/// Global identifiers (functions, global variables) begin with the '@' character.
-#[derive(Clone)]
-pub(crate) struct GlobalIdentifier {
-    /// The name of the identifier
-    name: String,
-}
-
-impl IRComponent for GlobalIdentifier {
-    fn append_to_string(&self, string: &mut String) {
-        string.push('@');
-        string.push_str(&self.name);
-    }
-}
-impl Value for GlobalIdentifier {}
-
-/// LLVM identifiers come in two basic types: global and local.
-/// Local identifiers (register names, types) begin with the '%' character.
-#[derive(Clone)]
-pub(crate) struct LocalIdentifier {
-    /// The name of the identifier
-    pub name: String,
-}
-
-impl IRComponent for LocalIdentifier {
-    fn append_to_string(&self, string: &mut String) {
-        string.push('%');
-        string.push_str(&self.name);
-    }
-}
-impl Value for LocalIdentifier {}
-
-/// Represents a valid LLVM IR constant.
-pub trait Constant: Value {}
-
-struct Integer {
-    value: String,
-}
-
-impl IRComponent for Integer {
-    fn append_to_string(&self, string: &mut String) {
-        string.push_str(&self.value);
-    }
-}
-
-impl Constant for Integer {}
-
-impl Value for Integer {}
 
 #[cfg(test)]
 mod tests {
-    use crate::value::Values;
+    use crate::types::Type;
+    use crate::value::Value;
     use crate::IRComponent;
+    use alloc::string::ToString;
 
     #[test]
     pub fn test_local_idents() {
-        let value = Values::local("foo");
+        let value = Value::LocalIdentifier("foo".to_string(), Type::Ptr);
         assert_eq!(value.emit(), "%foo");
     }
     #[test]
     pub fn test_global_idents() {
-        let value = Values::global("bar");
-        assert_eq!(value.emit(), "@bar");
+        let value = Value::GlobalIdentifier("foo".to_string(), Type::Ptr);
+        assert_eq!(value.emit(), "@foo");
     }
     #[test]
     pub fn test_int_constants() {
-        let value = Values::integer("1256").unwrap();
+        let value = Value::Integer("1256".to_string(), Type::Integer(32));
         assert_eq!(value.emit(), "1256");
     }
 }

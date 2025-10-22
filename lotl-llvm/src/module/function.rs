@@ -1,16 +1,16 @@
 use crate::instruction::BasicBlock;
 use crate::module::{LinkageType, ModuleComponent};
-use crate::types::FunctionPtr;
-use crate::value::{GlobalIdentifier, Values};
+use crate::types::Type;
 use crate::IRComponent;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 /// Global variables define regions of memory allocated at compilation time instead of run-time.
 pub struct GlobalFunction {
     /// The name of the function.
-    name: GlobalIdentifier,
-    ty: FunctionPtr,
+    name: String,
+    return_type: Type,
+    parameters: Vec<Type>,
     /// The linkage type of the function, defaults to LinkageType::External
     linkage: Option<LinkageType>,
     body: Option<FunctionBody>,
@@ -18,13 +18,20 @@ pub struct GlobalFunction {
 
 impl GlobalFunction {
     /// Creates a new global function from a name and signature.
-    pub fn new(name: &str, ty: FunctionPtr) -> Self {
+    pub fn new(name: &str, return_type: Type) -> Self {
         GlobalFunction {
-            name: Values::global(name),
-            ty,
+            name: name.to_string(),
+            return_type,
+            parameters: Vec::new(),
             linkage: None,
             body: None,
         }
+    }
+
+    /// Adds a parameter to the function.
+    pub fn with_parameter(mut self, parameter: Type) -> Self {
+        self.parameters.push(parameter);
+        self
     }
 
     /// Defines the linkage type of the global function.
@@ -43,13 +50,13 @@ impl GlobalFunction {
 impl IRComponent for GlobalFunction {
     fn append_to_string(&self, string: &mut String) {
         string.push_str("define ");
-        self.ty.return_type.append_to_string(string);
+        self.return_type.append_to_string(string);
         string.push(' ');
-        self.name.append_to_string(string);
+        string.push('@');
+        string.push_str(&self.name);
         string.push('(');
         string.push_str(
             &*self
-                .ty
                 .parameters
                 .iter()
                 .map(|p| p.emit())

@@ -1,25 +1,24 @@
 use crate::instruction::{BasicBlock, Instruction};
-use crate::types::Type;
-use crate::value::{LocalIdentifier, Value};
+use crate::value::Value;
 use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::string::String;
 
 pub struct BinOp {
-    returns_in: LocalIdentifier,
+    returns_in: String,
     operator: &'static str,
-    ty: Box<dyn Type>,
-    lhs: Box<dyn Value>,
-    rhs: Box<dyn Value>,
+    lhs: Value,
+    rhs: Value,
 }
 
 impl IRComponent for BinOp {
     fn append_to_string(&self, string: &mut String) {
-        self.returns_in.append_to_string(string);
+        string.push('%');
+        string.push_str(&self.returns_in);
         string.push_str(" = ");
         string.push_str(self.operator);
         string.push(' ');
-        self.ty.append_to_string(string);
+        self.lhs.ty().append_to_string(string);
         string.push(' ');
         self.lhs.append_to_string(string);
         string.push_str(", ");
@@ -29,42 +28,36 @@ impl IRComponent for BinOp {
 impl Instruction for BinOp {}
 
 impl BasicBlock {
-    pub fn add<T: Type + 'static, L: Value + 'static, R: Value + 'static>(
-        &mut self,
-        ty: T,
-        lhs: L,
-        rhs: R,
-    ) -> impl Value + 'static {
-        let id = self.create_local_register();
+    pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
+        let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
-            returns_in: id.clone(),
+            returns_in: name,
             operator: "add",
-            ty: Box::new(ty),
-            lhs: Box::new(lhs),
-            rhs: Box::new(rhs),
+            lhs,
+            rhs,
         }));
-        id
+        value
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::module::{FunctionBody, GlobalFunction};
-    use crate::types::Types;
-    use crate::value::Values;
-    use crate::{fn_ty, IRComponent};
+    use crate::types::Type;
+    use crate::value::Value;
+    use crate::IRComponent;
+    use alloc::string::ToString;
 
     #[test]
     fn build_adding_function() {
         let body = FunctionBody::new(|block| {
             let summed = block.add(
-                Types::integer(32),
-                Values::integer("10").unwrap(),
-                Values::integer("20").unwrap(),
+                Value::Integer("10".to_string(), Type::Integer(32)),
+                Value::Integer("20".to_string(), Type::Integer(32)),
             );
-            block.ret(Types::integer(32), summed);
+            block.ret(summed);
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: %r0 = add i32 10, 20 ret i32 %r0 }"
@@ -75,17 +68,16 @@ mod tests {
     fn build_cond_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br_if(
-                Types::integer(1),
-                Values::integer("1").unwrap(),
+                Value::Integer("1".to_string(), Type::Integer(1)),
                 |true_label| {
-                    true_label.ret(Types::integer(32), Values::integer("120").unwrap());
+                    true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
                 },
                 |false_label| {
-                    false_label.ret(Types::integer(32), Values::integer("240").unwrap());
+                    false_label.ret(Value::Integer("240".to_string(), Type::Integer(32)));
                 },
             );
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br i1 1, label %bb0, label %bb1 bb0: ret i32 120 bb1: ret i32 240 }"
@@ -96,10 +88,10 @@ mod tests {
     fn build_static_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br(|true_label| {
-                true_label.ret(Types::integer(32), Values::integer("120").unwrap());
+                true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
             });
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br label %bb0 bb0: ret i32 120 }"

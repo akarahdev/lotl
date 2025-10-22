@@ -48,15 +48,16 @@ pub trait ModuleComponent: IRComponent {}
 mod tests {
     use crate::module::GlobalVariable;
     use crate::module::LinkageType;
-    use crate::types::Types;
-    use crate::value::Values;
+    use crate::types::Type;
+    use crate::value::Value;
     use crate::IRComponent;
+    use alloc::string::ToString;
 
     #[test]
     pub fn generate_simple_global_variable() {
-        let var = GlobalVariable::new("foo", Types::integer(32))
+        let var = GlobalVariable::new("foo", Type::Integer(32))
             .with_linkage(LinkageType::Internal)
-            .with_value(Values::integer("1240").unwrap());
+            .with_value(Value::Integer("1240".to_string(), Type::Integer(32)));
         assert_eq!(var.emit(), "@foo = internal global i32 1240");
     }
 }

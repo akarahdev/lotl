@@ -1,20 +1,24 @@
 use crate::instruction::{BasicBlock, Instruction};
-use crate::types::{Type, Types};
-use crate::value::{LocalIdentifier, Value};
+use crate::types::Type;
+use crate::value::Value;
 use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
 
 struct Return {
-    ty: Box<dyn Type>,
-    value: Option<Box<dyn Value>>,
+    value: Option<Value>,
 }
 
 impl IRComponent for Return {
     fn append_to_string(&self, string: &mut String) {
         string.push_str("ret ");
-        self.ty.append_to_string(string);
+        let v = Type::Void;
+        self.value
+            .as_ref()
+            .map(|x| x.ty())
+            .unwrap_or_else(|| &v)
+            .append_to_string(string);
         self.value.iter().for_each(|value| {
             string.push(' ');
             value.append_to_string(string)
@@ -24,20 +28,20 @@ impl IRComponent for Return {
 impl Instruction for Return {}
 
 struct BranchCond {
-    cond: (Box<dyn Type>, Box<dyn Value>),
-    true_label: LocalIdentifier,
-    false_label: LocalIdentifier,
+    cond: Value,
+    true_label: String,
+    false_label: String,
 }
 
 impl IRComponent for BranchCond {
     fn append_to_string(&self, string: &mut String) {
         string.push_str(
             format!(
-                "br {} {}, label {}, label {}",
-                self.cond.0.emit(),
-                self.cond.1.emit(),
-                self.true_label.emit(),
-                self.false_label.emit()
+                "br {} {}, label %{}, label %{}",
+                self.cond.ty().emit(),
+                self.cond.emit(),
+                self.true_label,
+                self.false_label
             )
             .as_str(),
         );
@@ -46,13 +50,13 @@ impl IRComponent for BranchCond {
 impl Instruction for BranchCond {}
 
 struct BranchConst {
-    true_label: LocalIdentifier,
+    true_label: String,
 }
 
 impl IRComponent for BranchConst {
     fn append_to_string(&self, string: &mut String) {
-        string.push_str("br label ");
-        self.true_label.append_to_string(string);
+        string.push_str("br label %");
+        string.push_str(&self.true_label);
     }
 }
 impl Instruction for BranchConst {}
@@ -67,17 +71,12 @@ impl Instruction for Unreachable {}
 
 impl BasicBlock {
     pub fn ret_void(&mut self) {
-        self.instructions.push(Box::new(Return {
-            ty: Box::new(Types::void()),
-            value: None,
-        }));
+        self.instructions.push(Box::new(Return { value: None }));
     }
 
-    pub fn ret<T: Type + 'static, V: Value + 'static>(&mut self, ty: T, value: V) {
-        self.instructions.push(Box::new(Return {
-            ty: Box::new(ty),
-            value: Some(Box::new(value)),
-        }));
+    pub fn ret(&mut self, value: Value) {
+        self.instructions
+            .push(Box::new(Return { value: Some(value) }));
     }
 
     pub fn br<F: FnOnce(&mut BasicBlock)>(&mut self, label: F) {
@@ -87,20 +86,14 @@ impl BasicBlock {
         self.instructions.push(br);
     }
 
-    pub fn br_if<
-        Ct: Type + 'static,
-        Cv: Value + 'static,
-        F1: FnOnce(&mut BasicBlock),
-        F2: FnOnce(&mut BasicBlock),
-    >(
+    pub fn br_if<F1: FnOnce(&mut BasicBlock), F2: FnOnce(&mut BasicBlock)>(
         &mut self,
-        ty: Ct,
-        value: Cv,
+        value: Value,
         true_label: F1,
         false_label: F2,
     ) {
         let br = Box::new(BranchCond {
-            cond: (Box::new(ty), Box::new(value)),
+            cond: value,
             true_label: self.create_child(true_label),
             false_label: self.create_child(false_label),
         });
@@ -111,16 +104,17 @@ impl BasicBlock {
 #[cfg(test)]
 mod tests {
     use crate::module::{FunctionBody, GlobalFunction};
-    use crate::types::Types;
-    use crate::value::Values;
-    use crate::{fn_ty, IRComponent};
+    use crate::types::Type;
+    use crate::value::Value;
+    use crate::IRComponent;
+    use alloc::string::ToString;
 
     #[test]
     fn build_returning_function() {
         let body = FunctionBody::new(|block| {
-            block.ret(Types::integer(32), Values::integer("120").unwrap());
+            block.ret(Value::Integer("120".to_string(), Type::Integer(32)));
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(f.emit(), "define i32 @main() { entry: ret i32 120 }");
     }
 
@@ -128,17 +122,16 @@ mod tests {
     fn build_cond_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br_if(
-                Types::integer(1),
-                Values::integer("1").unwrap(),
+                Value::Integer("1".to_string(), Type::Integer(1)),
                 |true_label| {
-                    true_label.ret(Types::integer(32), Values::integer("120").unwrap());
+                    true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
                 },
                 |false_label| {
-                    false_label.ret(Types::integer(32), Values::integer("240").unwrap());
+                    false_label.ret(Value::Integer("240".to_string(), Type::Integer(32)));
                 },
             );
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br i1 1, label %bb0, label %bb1 bb0: ret i32 120 bb1: ret i32 240 }"
@@ -149,10 +142,10 @@ mod tests {
     fn build_static_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br(|true_label| {
-                true_label.ret(Types::integer(32), Values::integer("120").unwrap());
+                true_label.ret(Value::Integer("120".to_string(), Type::Integer(32)));
             });
         });
-        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", Type::Integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br label %bb0 bb0: ret i32 120 }"
