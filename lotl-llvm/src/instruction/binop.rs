@@ -64,7 +64,7 @@ mod tests {
             );
             block.ret(Types::integer(32), summed);
         });
-        let f = GlobalFunction::new(Values::global("main"), fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: %r0 = add i32 10, 20 ret i32 %r0 }"
@@ -85,7 +85,7 @@ mod tests {
                 },
             );
         });
-        let f = GlobalFunction::new(Values::global("main"), fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br i1 1, label %bb0, label %bb1 bb0: ret i32 120 bb1: ret i32 240 }"
@@ -99,7 +99,7 @@ mod tests {
                 true_label.ret(Types::integer(32), Values::integer("120").unwrap());
             });
         });
-        let f = GlobalFunction::new(Values::global("main"), fn_ty!(Types::integer(32))).body(body);
+        let f = GlobalFunction::new("main", fn_ty!(Types::integer(32))).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { entry: br label %bb0 bb0: ret i32 120 }"

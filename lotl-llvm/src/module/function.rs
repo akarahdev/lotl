@@ -1,7 +1,7 @@
 use crate::instruction::BasicBlock;
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::FunctionPtr;
-use crate::value::GlobalIdentifier;
+use crate::value::{GlobalIdentifier, Values};
 use crate::IRComponent;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -18,9 +18,9 @@ pub struct GlobalFunction {
 
 impl GlobalFunction {
     /// Creates a new global function from a name and signature.
-    pub fn new(name: GlobalIdentifier, ty: FunctionPtr) -> Self {
+    pub fn new(name: &str, ty: FunctionPtr) -> Self {
         GlobalFunction {
-            name,
+            name: Values::global(name),
             ty,
             linkage: None,
             body: None,

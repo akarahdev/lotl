@@ -25,7 +25,7 @@ impl Values {
     }
 
     /// Creates a constant global identifier.
-    pub fn global(name: &str) -> GlobalIdentifier
+    pub(crate) fn global(name: &str) -> GlobalIdentifier
     where
         Self: Sized,
     {
@@ -35,7 +35,7 @@ impl Values {
     }
 
     /// Creates a constant local identifier.
-    pub fn local(name: &str) -> LocalIdentifier
+    pub(crate) fn local(name: &str) -> LocalIdentifier
     where
         Self: Sized,
     {
@@ -48,7 +48,7 @@ impl Values {
 /// LLVM identifiers come in two basic types: global and local.
 /// Global identifiers (functions, global variables) begin with the '@' character.
 #[derive(Clone)]
-pub struct GlobalIdentifier {
+pub(crate) struct GlobalIdentifier {
     /// The name of the identifier
     name: String,
 }
@@ -64,7 +64,7 @@ impl Value for GlobalIdentifier {}
 /// LLVM identifiers come in two basic types: global and local.
 /// Local identifiers (register names, types) begin with the '%' character.
 #[derive(Clone)]
-pub struct LocalIdentifier {
+pub(crate) struct LocalIdentifier {
     /// The name of the identifier
     pub name: String,
 }

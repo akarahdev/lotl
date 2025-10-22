@@ -1,6 +1,6 @@
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
-use crate::value::{Constant, GlobalIdentifier};
+use crate::value::{Constant, GlobalIdentifier, Values};
 use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -19,9 +19,9 @@ pub struct GlobalVariable {
 
 impl GlobalVariable {
     /// Creates a new global variable with a name and a type.
-    pub fn new<T: Type + 'static>(name: GlobalIdentifier, ty: T) -> GlobalVariable {
+    pub fn new<T: Type + 'static>(name: &str, ty: T) -> GlobalVariable {
         GlobalVariable {
-            name,
+            name: Values::global(name),
             ty: Box::new(ty),
             linkage: None,
             value: None,
