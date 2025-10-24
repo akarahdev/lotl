@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use deranged::RangedU32;
 
 /// Represents an LLVM IR Type.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Type {
     /// Represents the LLVM integer type, with the number of bits specified.
@@ -14,6 +14,9 @@ pub enum Type {
     /// Represents the LLVM array type, with the size and element type specified.
     #[non_exhaustive]
     Array(u32, Box<Type>),
+    /// Represents the LLVM structure type, with the element types specified.
+    #[non_exhaustive]
+    Structure(Vec<Type>),
     /// Represents a pointer into memory.
     #[non_exhaustive]
     Ptr,
@@ -59,6 +62,17 @@ impl IRComponent for Type {
                 );
                 string.push(')');
             }
+            Type::Structure(parameters) => {
+                string.push('{');
+                string.push_str(
+                    &parameters
+                        .iter()
+                        .map(|x| x.emit())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                );
+                string.push('}');
+            }
         }
     }
 }
@@ -71,13 +85,27 @@ impl Types {
     pub fn integer(width: RangedU32<0, 8388607>) -> Type {
         Type::Integer(width.get())
     }
+    /// Generates a new array type, with the specified length and element type
+    pub fn array(length: u32, subtype: Type) -> Type {
+        Type::Array(length, Box::new(subtype))
+    }
+
+    /// Generates a new structure type, with the provided element types.
+    pub fn structure(subtypes: Vec<Type>) -> Type {
+        Type::Structure(subtypes)
+    }
+
+    /// Generates a new void type, with no size or value.
+    pub fn void() -> Type {
+        Type::Void
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::types::{Type, Types};
     use crate::IRComponent;
-    use alloc::boxed::Box;
+    use alloc::vec;
     use deranged::RangedU32;
 
     #[test]
@@ -88,7 +116,12 @@ mod tests {
 
     #[test]
     pub fn test_arrays() {
-        let int = Type::Array(4, Box::new(Types::integer(RangedU32::new(32).unwrap())));
+        let int = Types::array(4, Types::integer(RangedU32::new(32).unwrap()));
         assert_eq!(int.emit(), "[ 4 x i32 ]");
+    }
+    #[test]
+    pub fn test_structures() {
+        let int = Type::Structure(vec![Type::Integer(32), Type::Integer(64)]);
+        assert_eq!(int.emit(), "{i32, i64}");
     }
 }

@@ -21,7 +21,7 @@ impl IRComponent for Return {
             .append_to_string(string);
         self.value.iter().for_each(|value| {
             string.push(' ');
-            value.append_to_string(string)
+            value.append_to_string_untyped(string)
         });
     }
 }
@@ -37,8 +37,7 @@ impl IRComponent for BranchCond {
     fn append_to_string(&self, string: &mut String) {
         string.push_str(
             format!(
-                "br {} {}, label %{}, label %{}",
-                self.cond.ty().emit(),
+                "br {}, label %{}, label %{}",
                 self.cond.emit(),
                 self.true_label,
                 self.false_label

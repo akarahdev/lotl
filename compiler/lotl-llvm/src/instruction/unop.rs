@@ -17,8 +17,6 @@ impl IRComponent for UnaryOp {
         string.push_str(" = ");
         string.push_str(self.operator);
         string.push(' ');
-        self.value.ty().append_to_string(string);
-        string.push(' ');
         self.value.append_to_string(string);
     }
 }

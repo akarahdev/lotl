@@ -51,9 +51,9 @@ impl IRComponent for GlobalVariable {
         });
         string.push_str("global ");
         self.ty.append_to_string(string);
-        string.push(' ');
         self.value.iter().for_each(|e| {
-            e.append_to_string(string);
+            string.push(' ');
+            e.append_to_string_untyped(string);
         });
     }
 }

@@ -46,11 +46,9 @@ impl IRComponent for BinOp {
         string.push_str(" = ");
         self.operator.append_to_string(string);
         string.push(' ');
-        self.lhs.ty().append_to_string(string);
-        string.push(' ');
         self.lhs.append_to_string(string);
         string.push_str(", ");
-        self.rhs.append_to_string(string);
+        self.rhs.append_to_string_untyped(string);
     }
 }
 impl Instruction for BinOp {}
@@ -104,6 +102,49 @@ impl BasicBlockHandle<'_> {
         self.instructions.push(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerUnsignedDiv,
+            lhs,
+            rhs,
+        }));
+        value
+    }
+
+    pub fn fadd(&mut self, lhs: Value, rhs: Value) -> Value {
+        let (name, value) = self.create_local_register(lhs.ty().clone());
+        self.instructions.push(Box::new(BinOp {
+            returns_in: name,
+            operator: BinaryOperator::FloatAdd,
+            lhs,
+            rhs,
+        }));
+        value
+    }
+    pub fn fsub(&mut self, lhs: Value, rhs: Value) -> Value {
+        let (name, value) = self.create_local_register(lhs.ty().clone());
+        self.instructions.push(Box::new(BinOp {
+            returns_in: name,
+            operator: BinaryOperator::FloatSub,
+            lhs,
+            rhs,
+        }));
+        value
+    }
+
+    pub fn fmul(&mut self, lhs: Value, rhs: Value) -> Value {
+        let (name, value) = self.create_local_register(lhs.ty().clone());
+        self.instructions.push(Box::new(BinOp {
+            returns_in: name,
+            operator: BinaryOperator::FloatMul,
+            lhs,
+            rhs,
+        }));
+        value
+    }
+
+    pub fn fdiv(&mut self, lhs: Value, rhs: Value) -> Value {
+        let (name, value) = self.create_local_register(lhs.ty().clone());
+        self.instructions.push(Box::new(BinOp {
+            returns_in: name,
+            operator: BinaryOperator::FloatDiv,
             lhs,
             rhs,
         }));

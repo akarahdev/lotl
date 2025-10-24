@@ -1,3 +1,4 @@
+mod aggregate;
 mod binop;
 mod block;
 mod flow;
