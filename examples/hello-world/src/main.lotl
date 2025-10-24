@@ -1,0 +1,4 @@
+func main() -> void {
+    const make_it_work = "Hello, world!";
+    io.println(make_it_work);
+}

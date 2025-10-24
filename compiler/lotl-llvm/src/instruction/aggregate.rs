@@ -4,6 +4,7 @@ use crate::value::Value;
 use crate::IRComponent;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 pub struct ExtractValue {
     returns_in: String,
@@ -45,6 +46,29 @@ impl IRComponent for InsertValue {
     }
 }
 impl Instruction for InsertValue {}
+
+pub struct GetElementPtr {
+    returns_in: String,
+    ty: Type,
+    base: Value,
+    indices: Vec<Value>,
+}
+
+impl IRComponent for GetElementPtr {
+    fn append_to_string(&self, string: &mut String) {
+        string.push('%');
+        string.push_str(&self.returns_in);
+        string.push_str(" = getelementptr ");
+        self.ty.append_to_string(string);
+        string.push_str(", ");
+        self.base.append_to_string(string);
+        for value in &self.indices {
+            string.push_str(", ");
+            value.append_to_string(string);
+        }
+    }
+}
+impl Instruction for GetElementPtr {}
 
 impl BasicBlockHandle<'_> {
     pub fn extractvalue(&mut self, structure: Value, index: usize) -> Value {
@@ -116,6 +140,33 @@ impl BasicBlockHandle<'_> {
             }
             _ => panic!("insertvalue requires a structure or array type"),
         }
+    }
+
+    pub fn getelementptr(&mut self, ty: Type, base: Value, indices: Vec<Value>) -> Value {
+        let mut param_ty: Type = ty.clone();
+        for index in &indices {
+            match param_ty {
+                Type::Array(_, param) => {
+                    param_ty = *param.clone();
+                }
+                Type::Structure(params) => {
+                    let Value::Integer(length, _) = index.clone() else {
+                        panic!("getelementptr index for a structure must be an integer");
+                    };
+                    param_ty = params.get(length.parse::<usize>().unwrap()).unwrap().clone();
+                }
+                _ => panic!("getelementptr requires a structure or array type"),
+            }
+        }
+        let (name, value) =
+            self.create_local_register(Type::Ptr);
+        self.instructions.push(Box::new(GetElementPtr {
+            returns_in: name,
+            ty,
+            base,
+            indices,
+        }));
+        value
     }
 }
 

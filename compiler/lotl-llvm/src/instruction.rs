@@ -3,6 +3,7 @@ mod binop;
 mod block;
 mod flow;
 mod unop;
+mod memory;
 
 use crate::IRComponent;
 use alloc::boxed::Box;
