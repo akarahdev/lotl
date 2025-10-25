@@ -1,8 +1,8 @@
+use crate::IRComponent;
 use crate::instruction::{BasicBlock, Instruction};
 use crate::value::Value;
-use crate::IRComponent;
-use alloc::boxed::Box;
-use alloc::string::String;
+use std::boxed::Box;
+use std::string::String;
 
 struct UnaryOp {
     returns_in: String,

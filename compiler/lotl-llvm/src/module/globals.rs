@@ -1,8 +1,8 @@
+use crate::IRComponent;
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
 use crate::value::Value;
-use crate::IRComponent;
-use alloc::string::{String, ToString};
+use std::string::{String, ToString};
 
 /// Global variables define regions of memory allocated at compilation time instead of run-time.
 pub struct GlobalVariable {

@@ -1,8 +1,8 @@
-use crate::types::{Type, Types};
 use crate::IRComponent;
-use alloc::string::String;
-use alloc::vec::Vec;
+use crate::types::{Type, Types};
 use deranged::RangedU32;
+use std::string::String;
+use std::vec::Vec;
 
 /// Represents a valid LLVM value.
 #[derive(Clone, Debug)]
@@ -110,12 +110,12 @@ impl Value {
 
 #[cfg(test)]
 mod tests {
+    use crate::IRComponent;
     use crate::types::Type;
     use crate::value::{Value, Values};
-    use crate::IRComponent;
-    use alloc::string::ToString;
-    use alloc::vec;
     use deranged::RangedU32;
+    use std::string::ToString;
+    use std::vec;
 
     #[test]
     pub fn test_local_idents() {
