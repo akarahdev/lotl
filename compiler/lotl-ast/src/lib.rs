@@ -4,6 +4,8 @@
 //! All queries involving manipulating or transforming the AST should be hold in separate crates.
 
 #![deny(missing_docs)]
+#![no_std]
+extern crate alloc;
 
 /// Defines the top-level definitions
 pub mod defs;
