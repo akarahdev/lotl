@@ -1,9 +1,9 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlock, BasicBlockHandle};
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
-use std::string::{String, ToString};
-use std::vec::Vec;
+use crate::IRComponent;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 /// Global variables define regions of memory allocated at compilation time instead of run-time.
 pub struct GlobalFunction {

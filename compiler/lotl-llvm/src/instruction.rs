@@ -2,16 +2,16 @@ mod aggregate;
 mod binop;
 mod block;
 mod flow;
-mod memory;
 mod unop;
+mod memory;
 
 use crate::IRComponent;
-use std::boxed::Box;
-use std::ops::{Deref, DerefMut};
-use std::string::String;
-use std::sync::Arc;
-use std::sync::atomic::AtomicUsize;
-use std::vec::Vec;
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use core::ops::{Deref, DerefMut};
+use core::sync::atomic::AtomicUsize;
 
 pub trait Instruction: IRComponent {}
 

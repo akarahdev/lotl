@@ -6,8 +6,10 @@
 //!
 //! https://llvm.org/docs/LangRef.html
 
+#![no_std]
 #![deny(missing_docs)]
 #![allow(dead_code)]
+extern crate alloc;
 
 mod instruction;
 /// The module for LLVM IR modules
@@ -17,7 +19,7 @@ pub mod types;
 /// The module for LLVM IR values
 pub mod value;
 
-use std::string::String;
+use alloc::string::String;
 
 /// Represents that a struct is able to emitted as LLVM IR.
 pub trait IRComponent {

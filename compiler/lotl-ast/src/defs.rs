@@ -1,6 +1,6 @@
 use crate::types::AstType;
-use std::string::String;
-use std::vec::Vec;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 /// Represents the ID of a top-level definition.
 pub struct AstDefinitionId(pub u128);

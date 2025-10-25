@@ -1,12 +1,12 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlock, BasicBlockHandle};
 use crate::types::Type;
 use crate::value::Value;
-use std::format;
-use std::string::String;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::vec::Vec;
+use crate::IRComponent;
+use alloc::format;
+use alloc::string::String;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 impl BasicBlock {
     pub fn entry(label: &str) -> BasicBlock {

@@ -1,4 +1,4 @@
-use std::string::String;
+use alloc::string::String;
 
 /// Represents Lotl's type system in the AST.
 pub enum AstType {

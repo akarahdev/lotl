@@ -1,10 +1,10 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
-use std::boxed::Box;
-use std::format;
-use std::string::String;
+use crate::IRComponent;
+use alloc::boxed::Box;
+use alloc::format;
+use alloc::string::String;
 
 struct Return {
     value: Option<Value>,
@@ -106,10 +106,10 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
+    use crate::IRComponent;
     use deranged::RangedU32;
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::IRComponent;
-use std::string::String;
+use alloc::string::String;
 
 mod function;
 mod globals;
@@ -46,13 +46,13 @@ pub trait ModuleComponent: IRComponent {}
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::GlobalVariable;
     use crate::module::LinkageType;
     use crate::types::Types;
     use crate::value::Value;
+    use crate::IRComponent;
+    use alloc::string::ToString;
     use deranged::RangedU32;
-    use std::string::ToString;
 
     #[test]
     pub fn generate_simple_global_variable() {
