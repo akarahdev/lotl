@@ -1,3 +1,7 @@
 [workspace]
-members = ["compiler/lotl-ast","compiler/lotl-llvm"]
+members = [
+    "compiler/lotl-ast",
+    "compiler/lotl-llvm",
+    "compiler/lotl-token"
+]
 resolver = "3"
