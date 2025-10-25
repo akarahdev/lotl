@@ -2,8 +2,8 @@ use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
-use alloc::boxed::Box;
-use alloc::string::String;
+use std::boxed::Box;
+use std::string::String;
 
 pub struct StoreValue {
     value: Value,
@@ -113,8 +113,8 @@ mod tests {
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use alloc::vec;
     use deranged::RangedU32;
+    use std::vec;
 
     #[test]
     fn build_allocating_function() {

@@ -1,10 +1,10 @@
+use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
-use crate::IRComponent;
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
+use std::boxed::Box;
+use std::string::{String, ToString};
+use std::vec::Vec;
 
 pub struct ExtractValue {
     returns_in: String,
@@ -153,13 +153,15 @@ impl BasicBlockHandle<'_> {
                     let Value::Integer(length, _) = index.clone() else {
                         panic!("getelementptr index for a structure must be an integer");
                     };
-                    param_ty = params.get(length.parse::<usize>().unwrap()).unwrap().clone();
+                    param_ty = params
+                        .get(length.parse::<usize>().unwrap())
+                        .unwrap()
+                        .clone();
                 }
                 _ => panic!("getelementptr requires a structure or array type"),
             }
         }
-        let (name, value) =
-            self.create_local_register(Type::Ptr);
+        let (name, value) = self.create_local_register(Type::Ptr);
         self.instructions.push(Box::new(GetElementPtr {
             returns_in: name,
             ty,
@@ -172,12 +174,12 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
+    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use crate::IRComponent;
-    use alloc::vec;
     use deranged::RangedU32;
+    use std::vec;
 
     #[test]
     fn build_extracting_function() {

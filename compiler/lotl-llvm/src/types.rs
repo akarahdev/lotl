@@ -1,8 +1,8 @@
 use crate::IRComponent;
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
 use deranged::RangedU32;
+use std::boxed::Box;
+use std::string::{String, ToString};
+use std::vec::Vec;
 
 /// Represents an LLVM IR Type.
 #[derive(Clone, Debug, PartialEq)]
@@ -103,10 +103,10 @@ impl Types {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::{Type, Types};
     use crate::IRComponent;
-    use alloc::vec;
+    use crate::types::{Type, Types};
     use deranged::RangedU32;
+    use std::vec;
 
     #[test]
     pub fn test_integers() {

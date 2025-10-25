@@ -1,8 +1,8 @@
+use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::value::Value;
-use crate::IRComponent;
-use alloc::boxed::Box;
-use alloc::string::String;
+use std::boxed::Box;
+use std::string::String;
 
 pub struct BinOp {
     returns_in: String,
@@ -154,10 +154,10 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
+    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use crate::IRComponent;
     use deranged::RangedU32;
 
     #[test]
