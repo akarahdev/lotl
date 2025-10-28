@@ -1,9 +1,10 @@
 #![deny(missing_docs)]
 //! This crate is responsible for Lotl's error handling, and also contains utilities for rendering.
 
-use crate::span::Span;
-use std::borrow::Cow;
+use crate::diagnostic::Diagnostic;
 
+/// Contains information for diagnostics and errors.
+pub mod diagnostic;
 /// Contains the source file abstraction.
 pub mod file;
 /// Contains the Span structure.
@@ -35,32 +36,5 @@ impl<T> Results<T> {
         let output = f(self.output);
         diag.extend(output.diagnostics);
         Results::new(output.output, diag)
-    }
-}
-
-/// Represents a single error.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Diagnostic {
-    /// The message the error contains.
-    pub message: Cow<'static, str>,
-    /// The span of the error with source file.
-    pub span: Span,
-}
-
-impl Diagnostic {
-    /// Creates a new error instance from a static string.
-    pub fn new_static(message: &'static str, span: Span) -> Self {
-        Self {
-            message: Cow::Borrowed(message),
-            span,
-        }
-    }
-
-    /// Creates a new error instance from a dynamic string.
-    pub fn new_dynamic(message: String, span: Span) -> Self {
-        Self {
-            message: Cow::Owned(message),
-            span,
-        }
     }
 }

@@ -1,11 +1,18 @@
+use std::fmt::Debug;
 use crate::file::SourceFile;
 
 /// Represents a span of characters in a source file.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
     file: SourceFile,
     start: usize,
     end: usize,
+}
+
+impl Debug for Span {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{:?} @ {:?}..{:?}]", self.file, self.start, self.end)
+    }
 }
 
 impl Span {

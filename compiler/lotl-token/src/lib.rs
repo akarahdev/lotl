@@ -7,14 +7,21 @@
 #![deny(missing_docs)]
 
 pub use lotl_error::span::Span;
+use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
 /// Represents a stream of token trees. Can be called with `.iter()` to start iterating over it.
 /// These can also be cheaply copied around.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TokenStream {
     inner: Arc<Vec<TokenTree>>,
+}
+
+impl Debug for TokenStream {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:#?}", &self.inner))
+    }
 }
 
 impl Deref for TokenStream {
@@ -84,7 +91,7 @@ pub enum TokenKind {
     WhileKeyword,
     /// The `for` keyword
     ForKeyword,
-    
+
     /// Represents a comma: `,`
     Comma,
     /// Represents a colon: `:`

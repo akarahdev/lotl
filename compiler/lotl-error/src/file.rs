@@ -1,12 +1,19 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 
 /// Represents a source file.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SourceFile {
     /// The name of the file.
     pub name: Arc<String>,
     /// The raw string contents of the file.
     pub contents: Arc<String>,
+}
+
+impl Debug for SourceFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.name)
+    }
 }
 
 impl SourceFile {

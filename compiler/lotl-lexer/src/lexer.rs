@@ -1,6 +1,7 @@
+use lotl_error::diagnostic::{Diagnostic, DiagnosticLevel};
 use lotl_error::file::SourceFile;
 use lotl_error::span::Span;
-use lotl_error::{Diagnostic, Results};
+use lotl_error::Results;
 use lotl_token::{TokenKind, TokenStream, TokenTree};
 
 pub(crate) struct Lexer {
@@ -19,11 +20,26 @@ impl Lexer {
     }
 
     pub fn lex_repeatedly(mut self) -> Results<TokenStream> {
+        Results::new(self.lex_group('\0'), self.diagnostics)
+    }
+
+    pub fn lex_group(&mut self, terminating: char) -> TokenStream {
         let mut vec = Vec::new();
         loop {
             self.skip_whitespace();
             if self.index >= self.file.contents.len() {
-                return Results::new(TokenStream::new(vec), self.diagnostics);
+                if terminating != '\0' {
+                    self.diagnostics.push(Diagnostic::new_dynamic(
+                        format!("Unexpected end of file while trying to find end of '{terminating:#?}'"),
+                        DiagnosticLevel::Error,
+                        self.single_char_span()
+                    ))
+                }
+                return TokenStream::new(vec);
+            }
+            if self.peek() == terminating {
+                self.next();
+                return TokenStream::new(vec);
             }
             if let Some(tok) = self.lex_once() {
                 vec.push(tok);
@@ -40,18 +56,42 @@ impl Lexer {
     pub fn lex_once(&mut self) -> Option<TokenTree> {
         if self.peek().is_ascii_alphabetic() {
             let mut str = String::new();
-            while self.peek().is_ascii_alphabetic() {
+            while self.peek().is_ascii_alphabetic() || self.peek() == '_' || self.peek().is_ascii_digit() {
                 str.push(self.next());
             }
             return match str.as_str() {
-                "func" => Some(TokenTree::new(TokenKind::FuncKeyword, self.span())),
-                "if" => Some(TokenTree::new(TokenKind::IfKeyword, self.span())),
-                "else" => Some(TokenTree::new(TokenKind::ElseKeyword, self.span())),
-                "let" => Some(TokenTree::new(TokenKind::LetKeyword, self.span())),
-                "for" => Some(TokenTree::new(TokenKind::ForKeyword, self.span())),
-                "while" => Some(TokenTree::new(TokenKind::WhileKeyword, self.span())),
-                "return" => Some(TokenTree::new(TokenKind::ReturnKeyword, self.span())),
-                _ => Some(TokenTree::new(TokenKind::Ident(str), self.span())),
+                "func" => Some(TokenTree::new(
+                    TokenKind::FuncKeyword,
+                    self.single_char_span(),
+                )),
+                "if" => Some(TokenTree::new(
+                    TokenKind::IfKeyword,
+                    self.single_char_span(),
+                )),
+                "else" => Some(TokenTree::new(
+                    TokenKind::ElseKeyword,
+                    self.single_char_span(),
+                )),
+                "let" => Some(TokenTree::new(
+                    TokenKind::LetKeyword,
+                    self.single_char_span(),
+                )),
+                "for" => Some(TokenTree::new(
+                    TokenKind::ForKeyword,
+                    self.single_char_span(),
+                )),
+                "while" => Some(TokenTree::new(
+                    TokenKind::WhileKeyword,
+                    self.single_char_span(),
+                )),
+                "return" => Some(TokenTree::new(
+                    TokenKind::ReturnKeyword,
+                    self.single_char_span(),
+                )),
+                _ => Some(TokenTree::new(
+                    TokenKind::Ident(str),
+                    self.single_char_span(),
+                )),
             };
         }
         if self.peek().is_ascii_digit() {
@@ -59,39 +99,76 @@ impl Lexer {
             while self.peek().is_ascii_digit() {
                 str.push(self.next());
             }
-            return Some(TokenTree::new(TokenKind::Numeric(str), self.span()));
+            return Some(TokenTree::new(
+                TokenKind::Numeric(str),
+                self.single_char_span(),
+            ));
         }
         match self.next() {
-            ',' => Some(TokenTree::new(TokenKind::Comma, self.span())),
-            ':' => Some(TokenTree::new(TokenKind::Colon, self.span())),
-            ';' => Some(TokenTree::new(TokenKind::Semicolon, self.span())),
+            ',' => Some(TokenTree::new(TokenKind::Comma, self.single_char_span())),
+            ':' => Some(TokenTree::new(TokenKind::Colon, self.single_char_span())),
+            ';' => Some(TokenTree::new(
+                TokenKind::Semicolon,
+                self.single_char_span(),
+            )),
 
-            '=' => Some(TokenTree::new(TokenKind::Equal, self.span())),
-            '>' => Some(TokenTree::new(TokenKind::GreaterThan, self.span())),
-            '<' => Some(TokenTree::new(TokenKind::LessThan, self.span())),
+            '=' => Some(TokenTree::new(TokenKind::Equal, self.single_char_span())),
+            '>' => Some(TokenTree::new(
+                TokenKind::GreaterThan,
+                self.single_char_span(),
+            )),
+            '<' => Some(TokenTree::new(TokenKind::LessThan, self.single_char_span())),
 
-            '+' => Some(TokenTree::new(TokenKind::Plus, self.span())),
-            '-' => Some(TokenTree::new(TokenKind::Minus, self.span())),
-            '*' => Some(TokenTree::new(TokenKind::Star, self.span())),
-            '/' => Some(TokenTree::new(TokenKind::Slash, self.span())),
-            '%' => Some(TokenTree::new(TokenKind::Percent, self.span())),
-            '^' => Some(TokenTree::new(TokenKind::Caret, self.span())),
+            '+' => Some(TokenTree::new(TokenKind::Plus, self.single_char_span())),
+            '-' => Some(TokenTree::new(TokenKind::Minus, self.single_char_span())),
+            '*' => Some(TokenTree::new(TokenKind::Star, self.single_char_span())),
+            '/' => Some(TokenTree::new(TokenKind::Slash, self.single_char_span())),
+            '%' => Some(TokenTree::new(TokenKind::Percent, self.single_char_span())),
+            '^' => Some(TokenTree::new(TokenKind::Caret, self.single_char_span())),
 
-            '&' => Some(TokenTree::new(TokenKind::Ampersand, self.span())),
-            '|' => Some(TokenTree::new(TokenKind::VerticalBar, self.span())),
+            '&' => Some(TokenTree::new(
+                TokenKind::Ampersand,
+                self.single_char_span(),
+            )),
+            '|' => Some(TokenTree::new(
+                TokenKind::VerticalBar,
+                self.single_char_span(),
+            )),
 
-            '!' => Some(TokenTree::new(TokenKind::ExclamationMark, self.span())),
-            '?' => Some(TokenTree::new(TokenKind::QuestionMark, self.span())),
+            '!' => Some(TokenTree::new(
+                TokenKind::ExclamationMark,
+                self.single_char_span(),
+            )),
+            '?' => Some(TokenTree::new(
+                TokenKind::QuestionMark,
+                self.single_char_span(),
+            )),
 
-            '#' => Some(TokenTree::new(TokenKind::Hash, self.span())),
-            '$' => Some(TokenTree::new(TokenKind::Dollar, self.span())),
-            '.' => Some(TokenTree::new(TokenKind::Dot, self.span())),
-            '@' => Some(TokenTree::new(TokenKind::At, self.span())),
+            '#' => Some(TokenTree::new(TokenKind::Hash, self.single_char_span())),
+            '$' => Some(TokenTree::new(TokenKind::Dollar, self.single_char_span())),
+            '.' => Some(TokenTree::new(TokenKind::Dot, self.single_char_span())),
+            '@' => Some(TokenTree::new(TokenKind::At, self.single_char_span())),
+
+            '{' => Some(TokenTree::new(
+                TokenKind::Braces(self.lex_group('}')),
+                self.single_char_span(),
+            )),
+            '(' => Some(TokenTree::new(
+                TokenKind::Parenthesis(self.lex_group(')')),
+                self.single_char_span(),
+            )),
+            '[' => Some(TokenTree::new(
+                TokenKind::Brackets(self.lex_group(']')),
+                self.single_char_span(),
+            )),
 
             '\0' => None,
             _ => {
-                self.diagnostics
-                    .push(Diagnostic::new_static("Invalid character", self.span()));
+                self.diagnostics.push(Diagnostic::new_static(
+                    "Invalid character",
+                    DiagnosticLevel::Error,
+                    self.single_char_span(),
+                ));
                 None
             }
         }
@@ -107,7 +184,7 @@ impl Lexer {
         ch
     }
 
-    pub fn span(&self) -> Span {
-        Span::new(self.file.clone(), self.index, self.index)
+    pub fn single_char_span(&self) -> Span {
+        Span::new(self.file.clone(), self.index - 1, self.index)
     }
 }

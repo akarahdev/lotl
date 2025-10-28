@@ -33,6 +33,7 @@ mod tests {
         assert!(matches!(tokens.output[6].kind, TokenKind::Numeric(..)));
         assert!(matches!(tokens.output[7].kind, TokenKind::Slash));
         assert!(matches!(tokens.output[8].kind, TokenKind::Numeric(..)));
+        assert_eq!(tokens.diagnostics.len(), 0);
     }
 
     #[test]
@@ -43,5 +44,36 @@ mod tests {
         assert!(matches!(tokens.output[0].kind, TokenKind::Ident(..)));
         assert!(matches!(tokens.output[1].kind, TokenKind::Ident(..)));
         assert!(matches!(tokens.output[2].kind, TokenKind::Numeric(..)));
+        assert_eq!(tokens.diagnostics.len(), 0);
+    }
+
+    #[test]
+    pub fn braces() {
+        let source = SourceFile::new("hello.lotl", "{ hello }");
+        let tokens = lex(source);
+        assert_eq!(tokens.output.len(), 1);
+        assert_eq!(tokens.diagnostics.len(), 0);
+    }
+    #[test]
+    pub fn braces_errorful() {
+        let source = SourceFile::new("hello.lotl", "{ hello");
+        let tokens = lex(source);
+        assert_eq!(tokens.output.len(), 1);
+        assert_eq!(tokens.diagnostics.len(), 1);
+    }
+
+    #[test]
+    pub fn realistic_example() {
+        let source = SourceFile::new(
+            "hello.lotl",
+            r#"
+        func main() -> i32 {
+            return 10;
+        }
+        "#,
+        );
+        let tokens = lex(source);
+        assert_eq!(tokens.output.len(), 7);
+        assert_eq!(tokens.diagnostics.len(), 0);
     }
 }
