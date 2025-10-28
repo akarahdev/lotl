@@ -13,6 +13,18 @@ name = "lotl-ast"
 version = "0.1.0"
 
 [[package]]
+name = "lotl-error"
+version = "0.1.0"
+
+[[package]]
+name = "lotl-lexer"
+version = "0.1.0"
+dependencies = [
+ "lotl-error",
+ "lotl-token",
+]
+
+[[package]]
 name = "lotl-llvm"
 version = "0.1.0"
 dependencies = [
@@ -22,3 +34,6 @@ dependencies = [
 [[package]]
 name = "lotl-token"
 version = "0.1.0"
+dependencies = [
+ "lotl-error",
+]

@@ -5,4 +5,4 @@ edition = "2024"
 license = "Apache-2.0"
 
 [dependencies]
-deranged = "0.5.4"
+deranged = { workspace = true }

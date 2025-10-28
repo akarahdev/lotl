@@ -1,7 +1,8 @@
 [package]
-name = "lotl-token"
+name = "lotl-lexer"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+lotl-token = { workspace = true }
 lotl-error = { workspace = true }

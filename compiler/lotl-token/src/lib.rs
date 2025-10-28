@@ -6,40 +6,30 @@
 
 #![deny(missing_docs)]
 
+pub use lotl_error::span::Span;
+use std::ops::Deref;
 use std::sync::Arc;
 
-/// Represents a source file.
+/// Represents a stream of token trees. Can be called with `.iter()` to start iterating over it.
+/// These can also be cheaply copied around.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SourceFile {
-    name: Arc<String>,
-    contents: Arc<String>,
+pub struct TokenStream {
+    inner: Arc<Vec<TokenTree>>,
 }
 
-impl SourceFile {
-    /// Creates a new source file from a name and contents.
-    pub fn new(name: String, contents: String) -> SourceFile {
-        Self {
-            name: Arc::new(name),
-            contents: Arc::new(contents),
-        }
+impl Deref for TokenStream {
+    type Target = Vec<TokenTree>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
-/// Represents a span of characters in a source file.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Span {
-    file: Arc<SourceFile>,
-    start: usize,
-    end: usize,
-}
-
-impl Span {
-    /// Creates a new span with the file and provided indices.
-    pub fn new(file: Arc<SourceFile>, start: usize, end: usize) -> Span {
+impl TokenStream {
+    /// Creates a new token stream from an array of token trees.
+    pub fn new(inner: Vec<TokenTree>) -> TokenStream {
         Self {
-            file,
-            start,
-            end,
+            inner: Arc::new(inner),
         }
     }
 }
@@ -47,16 +37,22 @@ impl Span {
 /// Represents a tree of tokens.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TokenTree {
-    kind: TokenKind,
-    location: Span
+    /// The type of token this is
+    pub kind: TokenKind,
+    /// The source file of this token
+    pub location: Span,
+}
+
+impl TokenTree {
+    /// Creates a new token tree.
+    pub fn new(kind: TokenKind, location: Span) -> TokenTree {
+        TokenTree { kind, location }
+    }
 }
 
 /// Represents the kind of token being stored.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenKind {
-    /// Represents the root of a file.
-    Root(Vec<TokenTree>),
-
     /// Represents an identifier.
     Ident(String),
     /// Represents any number, floating-point or integer.
@@ -65,15 +61,30 @@ pub enum TokenKind {
     StringLiteral(String),
 
     /// Represents tokens wrapped in braces.
-    Braces(Vec<TokenTree>),
+    Braces(TokenStream),
     /// Represents tokens wrapped in brackets.
-    Brackets(Vec<TokenTree>),
+    Brackets(TokenStream),
     /// Represents tokens wrapped inside parentheses.
-    Parenthesis(Vec<TokenTree>),
+    Parenthesis(TokenStream),
 
     /// Represents a comment.
     Comment(String),
 
+    /// The `func` keyword
+    FuncKeyword,
+    /// The `if` keyword
+    IfKeyword,
+    /// The `else` keyword
+    ElseKeyword,
+    /// The `let` keyword
+    LetKeyword,
+    /// The `return` keyword
+    ReturnKeyword,
+    /// The `while` keyword
+    WhileKeyword,
+    /// The `for` keyword
+    ForKeyword,
+    
     /// Represents a comma: `,`
     Comma,
     /// Represents a colon: `:`

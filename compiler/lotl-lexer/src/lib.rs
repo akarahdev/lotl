@@ -1,0 +1,47 @@
+#![deny(missing_docs)]
+
+//! This crate exports a `lex` function you can use.
+
+mod lexer;
+
+use crate::lexer::Lexer;
+use lotl_error::file::SourceFile;
+use lotl_error::Results;
+use lotl_token::TokenStream;
+
+/// Converts a file into a token stream.
+pub fn lex(file: SourceFile) -> Results<TokenStream> {
+    Lexer::new(file.clone()).lex_repeatedly()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lex;
+    use lotl_error::file::SourceFile;
+    use lotl_token::TokenKind;
+
+    #[test]
+    pub fn simple_arithmetic_tokenization() {
+        let source = SourceFile::new("hello.lotl", "1+ 2 -3 *4/ 5");
+        let tokens = lex(source);
+        assert!(matches!(tokens.output[0].kind, TokenKind::Numeric(..)));
+        assert!(matches!(tokens.output[1].kind, TokenKind::Plus));
+        assert!(matches!(tokens.output[2].kind, TokenKind::Numeric(..)));
+        assert!(matches!(tokens.output[3].kind, TokenKind::Minus));
+        assert!(matches!(tokens.output[4].kind, TokenKind::Numeric(..)));
+        assert!(matches!(tokens.output[5].kind, TokenKind::Star));
+        assert!(matches!(tokens.output[6].kind, TokenKind::Numeric(..)));
+        assert!(matches!(tokens.output[7].kind, TokenKind::Slash));
+        assert!(matches!(tokens.output[8].kind, TokenKind::Numeric(..)));
+    }
+
+    #[test]
+    pub fn simple_ident_tokenization() {
+        let source = SourceFile::new("hello.lotl", "hello abc 123");
+        let tokens = lex(source);
+        assert_eq!(tokens.output.len(), 3);
+        assert!(matches!(tokens.output[0].kind, TokenKind::Ident(..)));
+        assert!(matches!(tokens.output[1].kind, TokenKind::Ident(..)));
+        assert!(matches!(tokens.output[2].kind, TokenKind::Numeric(..)));
+    }
+}
