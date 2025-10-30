@@ -73,7 +73,7 @@ mod tests {
         "#,
         );
         let tokens = lex(source);
-        assert_eq!(tokens.output.len(), 7);
+        assert_eq!(tokens.output.len(), 6);
         assert_eq!(tokens.diagnostics.len(), 0);
     }
 }

@@ -30,9 +30,11 @@ impl Lexer {
             if self.index >= self.file.contents.len() {
                 if terminating != '\0' {
                     self.diagnostics.push(Diagnostic::new_dynamic(
-                        format!("Unexpected end of file while trying to find end of '{terminating:#?}'"),
+                        format!(
+                            "Unexpected end of file while trying to find end of '{terminating:#?}'"
+                        ),
                         DiagnosticLevel::Error,
-                        self.single_char_span()
+                        self.single_char_span(),
                     ))
                 }
                 return TokenStream::new(vec);
@@ -56,7 +58,10 @@ impl Lexer {
     pub fn lex_once(&mut self) -> Option<TokenTree> {
         if self.peek().is_ascii_alphabetic() {
             let mut str = String::new();
-            while self.peek().is_ascii_alphabetic() || self.peek() == '_' || self.peek().is_ascii_digit() {
+            while self.peek().is_ascii_alphabetic()
+                || self.peek() == '_'
+                || self.peek().is_ascii_digit()
+            {
                 str.push(self.next());
             }
             return match str.as_str() {
@@ -120,7 +125,14 @@ impl Lexer {
             '<' => Some(TokenTree::new(TokenKind::LessThan, self.single_char_span())),
 
             '+' => Some(TokenTree::new(TokenKind::Plus, self.single_char_span())),
-            '-' => Some(TokenTree::new(TokenKind::Minus, self.single_char_span())),
+            '-' => {
+                if self.peek() == '>' {
+                    self.next();
+                    Some(TokenTree::new(TokenKind::Arrow, self.single_char_span()))
+                } else {
+                    Some(TokenTree::new(TokenKind::Minus, self.single_char_span()))
+                }
+            }
             '*' => Some(TokenTree::new(TokenKind::Star, self.single_char_span())),
             '/' => Some(TokenTree::new(TokenKind::Slash, self.single_char_span())),
             '%' => Some(TokenTree::new(TokenKind::Percent, self.single_char_span())),

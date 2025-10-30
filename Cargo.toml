@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "compiler/lotl-ast", "compiler/lotl-error", "compiler/lotl-lexer",
-    "compiler/lotl-llvm",
+    "compiler/lotl-llvm", "compiler/lotl-parser",
     "compiler/lotl-token"
 ]
 resolver = "3"
@@ -9,4 +9,7 @@ resolver = "3"
 [workspace.dependencies]
 lotl-token = { path = "compiler/lotl-token" }
 lotl-error = { path = "compiler/lotl-error" }
+lotl-ast = { path = "compiler/lotl-ast" }
+lotl-lexer = { path = "compiler/lotl-lexer" }
 deranged = "0.5.4"
+uuid = "1.18.1"

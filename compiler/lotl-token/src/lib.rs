@@ -39,6 +39,11 @@ impl TokenStream {
             inner: Arc::new(inner),
         }
     }
+
+    /// Gets the internal vector of a TokenStream
+    pub fn into_inner(self) -> Arc<Vec<TokenTree>> {
+        self.inner
+    }
 }
 
 /// Represents a tree of tokens.
@@ -137,4 +142,7 @@ pub enum TokenKind {
     Dot,
     /// Represents an at sign: `@`
     At,
+
+    /// Represents a right arrow: `->`
+    Arrow,
 }

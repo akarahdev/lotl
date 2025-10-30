@@ -1,6 +1,7 @@
 use std::string::String;
 
 /// Represents Lotl's type system in the AST.
+#[derive(Debug, Clone, PartialEq)]
 pub enum AstType {
     /// Represents a 32-bit integer.
     Int32,

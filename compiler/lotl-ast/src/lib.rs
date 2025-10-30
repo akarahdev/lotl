@@ -7,5 +7,9 @@
 
 /// Defines the top-level definitions
 pub mod defs;
+/// Defines the expressions of a top-level definition
+pub mod expr;
+/// Represents the statements a code block can have
+pub mod stmt;
 /// Defines the type system of the AST
 pub mod types;
