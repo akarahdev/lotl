@@ -10,14 +10,14 @@ mod util;
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
 use lotl_error::Results;
-use lotl_token::TokenStream;
+use lotl_token::{TokenKind, TokenStream};
 
 /// Parses a TokenStream into a series of AstDefinitions.
 pub fn parse(stream: TokenStream) -> Results<Vec<AstDefinition>> {
     let mut parser = Parser::new(stream);
     let mut defs = Vec::new();
     loop {
-        if parser.peek().is_none() {
+        if parser.peek().kind == TokenKind::EndOfStream {
             return Results::new(defs, parser.get_errs());
         }
         if let Some(def) = parser.parse_header() {
@@ -58,5 +58,12 @@ mod tests {
         let source = SourceFile::new("example.lotl", "func main[T]() -> T { } ");
         let ast = lex(source).and_then(parse);
         assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn bad_generic_function() {
+        let source = SourceFile::new("example.lotl", "func main() -> { }");
+        let ast = lex(source).and_then(parse);
+        assert_eq!(ast.diagnostics.len(), 1);
     }
 }

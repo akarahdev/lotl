@@ -37,10 +37,19 @@ impl Lexer {
                         self.single_char_span(),
                     ))
                 }
+                vec.push(TokenTree::new(
+                    TokenKind::EndOfStream,
+                    self.single_char_span(),
+                ));
                 return TokenStream::new(vec);
             }
             if self.peek() == terminating {
                 self.next();
+
+                vec.push(TokenTree::new(
+                    TokenKind::EndOfStream,
+                    self.single_char_span(),
+                ));
                 return TokenStream::new(vec);
             }
             if let Some(tok) = self.lex_once() {
@@ -197,6 +206,6 @@ impl Lexer {
     }
 
     pub fn single_char_span(&self) -> Span {
-        Span::new(self.file.clone(), self.index - 1, self.index)
+        Span::new(self.file.clone(), self.index, self.index)
     }
 }

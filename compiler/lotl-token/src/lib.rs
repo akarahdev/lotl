@@ -145,4 +145,7 @@ pub enum TokenKind {
 
     /// Represents a right arrow: `->`
     Arrow,
+
+    /// Represents the end of a file
+    EndOfStream,
 }

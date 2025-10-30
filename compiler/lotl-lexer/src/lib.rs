@@ -40,7 +40,7 @@ mod tests {
     pub fn simple_ident_tokenization() {
         let source = SourceFile::new("hello.lotl", "hello abc 123");
         let tokens = lex(source);
-        assert_eq!(tokens.output.len(), 3);
+        assert_eq!(tokens.output.len(), 4);
         assert!(matches!(tokens.output[0].kind, TokenKind::Ident(..)));
         assert!(matches!(tokens.output[1].kind, TokenKind::Ident(..)));
         assert!(matches!(tokens.output[2].kind, TokenKind::Numeric(..)));
@@ -51,14 +51,14 @@ mod tests {
     pub fn braces() {
         let source = SourceFile::new("hello.lotl", "{ hello }");
         let tokens = lex(source);
-        assert_eq!(tokens.output.len(), 1);
+        assert_eq!(tokens.output.len(), 2);
         assert_eq!(tokens.diagnostics.len(), 0);
     }
     #[test]
     pub fn braces_errorful() {
         let source = SourceFile::new("hello.lotl", "{ hello");
         let tokens = lex(source);
-        assert_eq!(tokens.output.len(), 1);
+        assert_eq!(tokens.output.len(), 2);
         assert_eq!(tokens.diagnostics.len(), 1);
     }
 
@@ -73,7 +73,7 @@ mod tests {
         "#,
         );
         let tokens = lex(source);
-        assert_eq!(tokens.output.len(), 6);
+        assert_eq!(tokens.output.len(), 7);
         assert_eq!(tokens.diagnostics.len(), 0);
     }
 }

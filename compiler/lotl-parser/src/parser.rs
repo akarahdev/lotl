@@ -1,5 +1,5 @@
 use lotl_error::diagnostic::Diagnostic;
-use lotl_token::{TokenStream, TokenTree};
+use lotl_token::{TokenKind, TokenStream, TokenTree};
 use std::cell::{Cell, RefCell};
 use std::sync::Arc;
 
@@ -18,20 +18,46 @@ impl Parser {
         }
     }
 
-    pub fn peek(&self) -> Option<&TokenTree> {
-        self.vec.get(self.index.get())
+    pub fn peek(&self) -> &TokenTree {
+        self.vec.get(self.index.get()).unwrap_or_else(|| {
+            self.vec.last().unwrap()
+        })
     }
 
-    pub fn next(&self) -> Option<&TokenTree> {
+    pub fn next(&self) -> &TokenTree {
+        if self.peek().kind == TokenKind::EndOfStream {
+            return self.peek();
+        }
         self.index.set(self.index.get() + 1);
-        self.vec.get(self.index.get() - 1)
+        self.vec.get(self.index.get() - 1).unwrap_or_else(|| {
+            self.vec.last().unwrap()
+        })
     }
 
     pub fn push_err(&self, diagnostic: Diagnostic) {
         self.errors.borrow_mut().push(diagnostic);
     }
-    
+
     pub fn get_errs(&self) -> Vec<Diagnostic> {
         self.errors.borrow().clone()
     }
+}
+
+#[macro_export]
+/// Expects a token of a certain pattern, and fails with the error if it's not present
+macro_rules! expect_kind {
+    (
+        $parser:expr,
+        $tok:expr,
+        $kind:pat
+    ) => {
+        let $kind = $tok.kind else {
+            $parser.push_err(Diagnostic::new_dynamic(
+                format!("Expected {:?}, found {:?}", stringify!($pat), $tok.kind),
+                DiagnosticLevel::Error,
+                $tok.location.clone(),
+            ));
+            return None;
+        };
+    };
 }

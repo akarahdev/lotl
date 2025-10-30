@@ -1,3 +1,4 @@
+use crate::expect_kind;
 use crate::parser::Parser;
 use lotl_ast::defs::{AstDefinition, AstDefinitionId, AstDefinitionKind};
 use lotl_error::diagnostic::{Diagnostic, DiagnosticLevel};
@@ -6,8 +7,9 @@ use uuid::Uuid;
 
 impl Parser {
     pub fn parse_header(&mut self) -> Option<AstDefinition> {
-        let kw_tok = self.peek()?;
+        let kw_tok = self.peek();
         match &kw_tok.kind {
+            TokenKind::EndOfStream => None,
             TokenKind::FuncKeyword => self.parse_function(),
             _ => {
                 self.push_err(Diagnostic::new_dynamic(
@@ -22,21 +24,16 @@ impl Parser {
     }
 
     pub fn parse_function(&mut self) -> Option<AstDefinition> {
-        let kw_tok = self.next()?;
-        let name_tok = self.next()?;
-        let TokenKind::Ident(name) = name_tok.kind.clone() else {
-            self.push_err(Diagnostic::new_dynamic(
-                format!("Expected `ident`, got {:?}", kw_tok.kind),
-                DiagnosticLevel::Error,
-                name_tok.location.clone(),
-            ));
-            return None;
-        };
+        let kw_tok = self.next();
+        let name_tok = self.next();
 
+        expect_kind!(self, name_tok.clone(), TokenKind::Ident(name));
+
+        // parse generics of a functions
         let mut generics: Vec<String> = Vec::new();
 
         let generic_tok = self.peek();
-        if let Some(TokenKind::Brackets(generic_toks)) = &generic_tok.map(|x| &x.kind) {
+        if let TokenKind::Brackets(generic_toks) = &generic_tok.kind {
             generics = self.parse_delimited_series(
                 generic_toks.clone(),
                 TokenKind::Comma,
@@ -45,7 +42,8 @@ impl Parser {
             self.next();
         }
 
-        let param_tok = self.next()?;
+        // parse the function's parameters
+        let param_tok = self.next();
         let TokenKind::Parenthesis(_param_toks) = &param_tok.kind else {
             self.push_err(Diagnostic::new_dynamic(
                 format!("Expected `ident`, got {:?}", kw_tok.kind),
@@ -55,20 +53,14 @@ impl Parser {
             return None;
         };
 
-        let arrow_tok = self.next()?;
-        let TokenKind::Arrow = &arrow_tok.kind else {
-            self.push_err(Diagnostic::new_dynamic(
-                format!("Expected `->`, got {:?}", kw_tok.kind),
-                DiagnosticLevel::Error,
-                param_tok.location.clone(),
-            ));
-            return None;
-        };
+        // now parse the return type
+        let arrow_tok = self.next();
+        expect_kind!(self, &arrow_tok, TokenKind::Arrow);
 
         let return_ty = self.parse_generic_type(generics.as_slice());
 
         let mut statements = None;
-        if let Some(TokenKind::Braces(block_tokens)) = self.peek().map(|x| &x.kind) {
+        if let TokenKind::Braces(block_tokens) = &self.peek().kind {
             self.next();
             statements = Some(
                 self.parse_delimited_series(
@@ -95,9 +87,7 @@ impl Parser {
     }
 
     pub fn parse_generic_param(&mut self) -> String {
-        let tok = self
-            .next()
-            .expect("can't be null if used in the special method");
+        let tok = self.next();
         let TokenKind::Ident(generic_type_name) = &tok.kind else {
             self.push_err(Diagnostic::new_dynamic(
                 format!("Expected `ident` as a generic type, got {:?}", tok.kind),

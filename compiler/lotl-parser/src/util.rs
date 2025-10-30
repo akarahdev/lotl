@@ -11,7 +11,12 @@ impl Parser {
 
     pub fn parse_generic_type(&mut self, generics: &[String]) -> AstType {
         let type_ident = self.next();
-        let Some(TokenKind::Ident(type_name)) = &type_ident.map(|x| &x.kind) else {
+        let TokenKind::Ident(type_name) = &type_ident.kind else {
+            self.push_err(Diagnostic::new_static(
+                "Not a valid type",
+                DiagnosticLevel::Error,
+                type_ident.location.clone(),
+            ));
             return AstType::Void;
         };
         if generics.contains(type_name) {
@@ -35,26 +40,24 @@ impl Parser {
         let mut parser = Parser::new(stream);
         let mut collection = Vec::new();
 
+        if parser.peek().kind == TokenKind::EndOfStream {
+            return collection;
+        }
+
         loop {
-            let Some(_) = parser.peek() else {
+            if parser.peek().kind == TokenKind::EndOfStream {
                 for err in parser.get_errs() {
                     self.push_err(err);
                 }
                 return collection;
-            };
+            }
             collection.push(func(&mut parser));
-            let Some(comma) = parser.peek() else {
-                for err in parser.get_errs() {
-                    self.push_err(err);
-                }
-                return collection;
-            };
-            parser.next();
-            if comma.kind != delimiter {
+            let next = parser.next();
+            if next.kind != delimiter && next.kind != TokenKind::EndOfStream {
                 parser.push_err(Diagnostic::new_dynamic(
-                    format!("Unexpected token {:?}, wanted {:?}", comma.kind, delimiter),
+                    format!("Unexpected token {:?}, wanted {:?}", next.kind, delimiter),
                     DiagnosticLevel::Error,
-                    comma.location.clone(),
+                    next.location.clone(),
                 ));
             }
         }

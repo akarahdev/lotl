@@ -14,7 +14,7 @@ impl Parser {
     }
 
     pub fn parse_base_expr(&mut self) -> Option<AstExpr> {
-        let token = self.peek()?;
+        let token = self.peek();
         match &token.kind {
             TokenKind::Numeric(num) => {
                 self.next();
