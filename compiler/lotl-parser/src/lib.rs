@@ -7,6 +7,7 @@ mod errors;
 mod parser;
 mod stmt;
 mod util;
+mod expr;
 
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
@@ -65,7 +66,6 @@ mod tests {
     fn bad_typeless_function() {
         let source = SourceFile::new("example.lotl", "func main() -> { }");
         let ast = lex(source).and_then(parse);
-        eprintln!("{:#?}", ast);
         assert_eq!(ast.diagnostics.len(), 1);
     }
 
@@ -73,7 +73,16 @@ mod tests {
     fn bad_paramless_function() {
         let source = SourceFile::new("example.lotl", "func main -> i32 { }");
         let ast = lex(source).and_then(parse);
-        eprintln!("{:#?}", ast);
         assert_eq!(ast.diagnostics.len(), 1);
+    }
+
+
+
+    #[test]
+    fn binop_function() {
+        let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20 - 30 * 40 / 50; }");
+        let ast = lex(source).and_then(parse);
+        eprintln!("{:#?}", ast);
+        assert_eq!(ast.diagnostics.len(), 0);
     }
 }

@@ -88,7 +88,6 @@ impl Parser {
                     Parser::parse_stmt,
                 )
                 .into_iter()
-                .flatten()
                 .collect(),
             )
         }
