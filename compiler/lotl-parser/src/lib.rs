@@ -3,6 +3,7 @@
 #![deny(missing_docs)]
 
 mod defs;
+mod errors;
 mod parser;
 mod stmt;
 mod util;
@@ -61,9 +62,18 @@ mod tests {
     }
 
     #[test]
-    fn bad_generic_function() {
+    fn bad_typeless_function() {
         let source = SourceFile::new("example.lotl", "func main() -> { }");
         let ast = lex(source).and_then(parse);
+        eprintln!("{:#?}", ast);
+        assert_eq!(ast.diagnostics.len(), 1);
+    }
+
+    #[test]
+    fn bad_paramless_function() {
+        let source = SourceFile::new("example.lotl", "func main -> i32 { }");
+        let ast = lex(source).and_then(parse);
+        eprintln!("{:#?}", ast);
         assert_eq!(ast.diagnostics.len(), 1);
     }
 }

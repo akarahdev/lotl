@@ -2,6 +2,9 @@
 
 //! This crate exports a `lex` function you can use.
 
+extern crate core;
+
+mod err;
 mod lexer;
 
 use crate::lexer::Lexer;

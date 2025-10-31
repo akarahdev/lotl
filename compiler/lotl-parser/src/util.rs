@@ -1,6 +1,7 @@
+use crate::errors::ExpectedKindFoundKind;
 use crate::parser::Parser;
 use lotl_ast::types::AstType;
-use lotl_error::diagnostic::{Diagnostic, DiagnosticLevel};
+use lotl_error::diagnostic::Diagnostic;
 use lotl_token::{TokenKind, TokenStream};
 
 impl Parser {
@@ -10,15 +11,18 @@ impl Parser {
     }
 
     pub fn parse_generic_type(&mut self, generics: &[String]) -> AstType {
-        let type_ident = self.next();
+        let type_ident = self.peek();
         let TokenKind::Ident(type_name) = &type_ident.kind else {
-            self.push_err(Diagnostic::new_static(
-                "Not a valid type",
-                DiagnosticLevel::Error,
+            self.push_err(Diagnostic::new(
+                ExpectedKindFoundKind {
+                    expected: &[TokenKind::Ident("".to_string())],
+                    found: type_ident.kind.clone(),
+                },
                 type_ident.location.clone(),
             ));
             return AstType::Void;
         };
+        self.next();
         if generics.contains(type_name) {
             return AstType::TypeVar(type_name.to_string());
         }
@@ -54,9 +58,11 @@ impl Parser {
             collection.push(func(&mut parser));
             let next = parser.next();
             if next.kind != delimiter && next.kind != TokenKind::EndOfStream {
-                parser.push_err(Diagnostic::new_dynamic(
-                    format!("Unexpected token {:?}, wanted {:?}", next.kind, delimiter),
-                    DiagnosticLevel::Error,
+                parser.push_err(Diagnostic::new(
+                    ExpectedKindFoundKind {
+                        expected: &[delimiter.clone()],
+                        found: next.kind.clone(),
+                    },
                     next.location.clone(),
                 ));
             }

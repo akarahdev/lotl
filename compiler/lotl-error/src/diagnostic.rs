@@ -1,34 +1,45 @@
 use crate::span::Span;
-use std::borrow::Cow;
 
 /// Represents a single error.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Diagnostic {
-    /// The message the error contains.
-    pub message: Cow<'static, str>,
-    /// The span of the error with source file.
-    pub span: Span,
     /// Defines the diagnostic level
-    pub level: DiagnosticLevel
+    pub level: DiagnosticLevel,
+    /// The primary error
+    pub main: (String, Span),
+    /// Extra help of what to provide
+    pub help: Option<(String, Span)>,
+    /// An extra note about the error
+    pub note: Option<(String, Span)>,
 }
 
 impl Diagnostic {
-    /// Creates a new error instance from a static string.
-    pub fn new_static(message: &'static str, level: DiagnosticLevel, span: Span) -> Self {
+    /// Creates a new error instance.
+    pub fn new<E: DiagnosticError>(error: E, span: Span) -> Self {
         Self {
-            message: Cow::Borrowed(message),
-            span,
-            level,
+            level: DiagnosticLevel::Error,
+            main: (error.message(), span),
+            help: None,
+            note: None,
         }
     }
 
-    /// Creates a new error instance from a dynamic string.
-    pub fn new_dynamic(message: String, level: DiagnosticLevel, span: Span) -> Self {
-        Self {
-            message: Cow::Owned(message),
-            span,
-            level,
-        }
+    /// Sets the level of this diagnostic.
+    pub fn level(mut self, level: DiagnosticLevel) -> Self {
+        self.level = level;
+        self
+    }
+
+    /// Sets the help information of this diagnostic.
+    pub fn help(mut self, help: (String, Span)) -> Self {
+        self.help = Some(help);
+        self
+    }
+
+    /// Sets the note information of this diagnostic.
+    pub fn note(mut self, note: (String, Span)) -> Self {
+        self.note = Some(note);
+        self
     }
 }
 
@@ -41,4 +52,10 @@ pub enum DiagnosticLevel {
     Error,
     /// Indicates this diagnostic is purely informational
     Info,
+}
+
+/// Represents a valid error for a diagnostic.
+pub trait DiagnosticError {
+    /// The message of this error.
+    fn message(self) -> String;
 }

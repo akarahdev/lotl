@@ -19,9 +19,9 @@ impl Parser {
     }
 
     pub fn peek(&self) -> &TokenTree {
-        self.vec.get(self.index.get()).unwrap_or_else(|| {
-            self.vec.last().unwrap()
-        })
+        self.vec
+            .get(self.index.get())
+            .unwrap_or_else(|| self.vec.last().unwrap())
     }
 
     pub fn next(&self) -> &TokenTree {
@@ -29,17 +29,9 @@ impl Parser {
             return self.peek();
         }
         self.index.set(self.index.get() + 1);
-        self.vec.get(self.index.get() - 1).unwrap_or_else(|| {
-            self.vec.last().unwrap()
-        })
-    }
-
-    pub fn push_err(&self, diagnostic: Diagnostic) {
-        self.errors.borrow_mut().push(diagnostic);
-    }
-
-    pub fn get_errs(&self) -> Vec<Diagnostic> {
-        self.errors.borrow().clone()
+        self.vec
+            .get(self.index.get() - 1)
+            .unwrap_or_else(|| self.vec.last().unwrap())
     }
 }
 
@@ -49,12 +41,15 @@ macro_rules! expect_kind {
     (
         $parser:expr,
         $tok:expr,
-        $kind:pat
+        $kind:pat,
+        $expected:expr
     ) => {
         let $kind = $tok.kind else {
-            $parser.push_err(Diagnostic::new_dynamic(
-                format!("Expected {:?}, found {:?}", stringify!($pat), $tok.kind),
-                DiagnosticLevel::Error,
+            $parser.push_err(Diagnostic::new(
+                ExpectedKindFoundKind {
+                    expected: $expected,
+                    found: $tok.kind.clone(),
+                },
                 $tok.location.clone(),
             ));
             return None;

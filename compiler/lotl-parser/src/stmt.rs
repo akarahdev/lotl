@@ -1,7 +1,8 @@
+use crate::errors::ExpectedKindFoundKind;
 use crate::parser::Parser;
 use lotl_ast::expr::AstExpr;
 use lotl_ast::stmt::AstStatement;
-use lotl_error::diagnostic::{Diagnostic, DiagnosticLevel};
+use lotl_error::diagnostic::Diagnostic;
 use lotl_token::TokenKind;
 
 impl Parser {
@@ -26,10 +27,15 @@ impl Parser {
                 self.next();
                 Some(AstExpr::Identifier { name: name.clone() })
             }
-            _ => {
-                self.push_err(Diagnostic::new_static(
-                    "Expected a valid expression",
-                    DiagnosticLevel::Error,
+            found => {
+                self.push_err(Diagnostic::new(
+                    ExpectedKindFoundKind {
+                        expected: &[
+                            TokenKind::Numeric("".to_string()),
+                            TokenKind::Ident("".to_string()),
+                        ],
+                        found: found.clone(),
+                    },
                     token.location.clone(),
                 ));
                 None

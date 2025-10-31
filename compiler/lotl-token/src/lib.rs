@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 /// Represents a stream of token trees. Can be called with `.iter()` to start iterating over it.
 /// These can also be cheaply copied around.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct TokenStream {
     inner: Arc<Vec<TokenTree>>,
 }
@@ -38,6 +38,11 @@ impl TokenStream {
         Self {
             inner: Arc::new(inner),
         }
+    }
+
+    /// Creates an empty token stream.
+    pub fn empty() -> TokenStream {
+        Self::new(vec![])
     }
 
     /// Gets the internal vector of a TokenStream
@@ -148,4 +153,48 @@ pub enum TokenKind {
 
     /// Represents the end of a file
     EndOfStream,
+}
+
+impl TokenKind {
+    /// Returns the name of this token.
+    pub fn name(&self) -> &'static str {
+        match self {
+            TokenKind::Ident(_) => "identifier",
+            TokenKind::Numeric(_) => "number",
+            TokenKind::StringLiteral(_) => "string",
+            TokenKind::Braces(_) => "braces",
+            TokenKind::Brackets(_) => "brackets",
+            TokenKind::Parenthesis(_) => "parenthesis",
+            TokenKind::Comment(_) => "comment",
+            TokenKind::FuncKeyword => "func",
+            TokenKind::IfKeyword => "if",
+            TokenKind::ElseKeyword => "else",
+            TokenKind::LetKeyword => "let",
+            TokenKind::ReturnKeyword => "return",
+            TokenKind::WhileKeyword => "while",
+            TokenKind::ForKeyword => "for",
+            TokenKind::Comma => ",",
+            TokenKind::Colon => ":",
+            TokenKind::Semicolon => ";",
+            TokenKind::Equal => "=",
+            TokenKind::GreaterThan => ">",
+            TokenKind::LessThan => "<",
+            TokenKind::Plus => "+",
+            TokenKind::Minus => "-",
+            TokenKind::Star => "*",
+            TokenKind::Slash => "/",
+            TokenKind::Percent => "%",
+            TokenKind::Caret => "^",
+            TokenKind::Ampersand => "^",
+            TokenKind::VerticalBar => "|",
+            TokenKind::QuestionMark => "?",
+            TokenKind::ExclamationMark => "!",
+            TokenKind::Hash => "#",
+            TokenKind::Dollar => "$",
+            TokenKind::Dot => ".",
+            TokenKind::At => "@",
+            TokenKind::Arrow => "->",
+            TokenKind::EndOfStream => "EOF",
+        }
+    }
 }
