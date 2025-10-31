@@ -76,13 +76,17 @@ mod tests {
         assert_eq!(ast.diagnostics.len(), 1);
     }
 
-
-
     #[test]
     fn binop_function() {
-        let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20 - 30 * 40 / 50; }");
+        let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20 - 30 / 40 * 50; }");
         let ast = lex(source).and_then(parse);
-        eprintln!("{:#?}", ast);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn parenthesized_function() {
+        let source = SourceFile::new("example.lotl", "func main() -> i32 { ((10) + (20)); }");
+        let ast = lex(source).and_then(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

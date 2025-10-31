@@ -60,7 +60,7 @@ impl Parser {
             if next.kind != delimiter && next.kind != TokenKind::EndOfStream {
                 parser.push_err(Diagnostic::new(
                     ExpectedKindFoundKind {
-                        expected: &[delimiter.clone()],
+                        expected: std::slice::from_ref(&delimiter),
                         found: next.kind.clone(),
                     },
                     next.location.clone(),

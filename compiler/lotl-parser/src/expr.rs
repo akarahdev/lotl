@@ -71,6 +71,11 @@ impl Parser {
                 self.next();
                 AstExpr::Identifier { name: name.clone() }
             }
+            TokenKind::Parenthesis(inner) => {
+                self.next();
+                let mut parser = Parser::new(inner.clone());
+                parser.parse_expr()
+            }
             found => {
                 self.push_err(Diagnostic::new(
                     ExpectedKindFoundKind {
