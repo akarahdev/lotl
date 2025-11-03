@@ -4,7 +4,10 @@ pub struct UnexpectedEOFWhileFinding(pub char);
 
 impl DiagnosticError for UnexpectedEOFWhileFinding {
     fn message(self) -> String {
-        format!("Unexpected EOF while trying to find terminating {:?}", self.0)
+        format!(
+            "Unexpected EOF while trying to find terminating {:?}",
+            self.0
+        )
     }
 }
 

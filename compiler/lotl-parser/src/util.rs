@@ -35,6 +35,15 @@ impl Parser {
         }
     }
 
+    pub fn parse_single_stream<T, F: Fn(&mut Self) -> T>(&self, stream: TokenStream, func: F) -> T {
+        let mut parser = Parser::new(stream);
+        let output = func(&mut parser);
+        for diag in parser.get_errs() {
+            self.push_err(diag);
+        }
+        output
+    }
+
     pub fn parse_delimited_series<T, F: Fn(&mut Self) -> T>(
         &self,
         stream: TokenStream,

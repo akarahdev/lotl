@@ -1,9 +1,9 @@
+use crate::err::{InvalidCharacter, UnexpectedEOFWhileFinding};
+use lotl_error::Results;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_error::file::SourceFile;
 use lotl_error::span::Span;
-use lotl_error::Results;
 use lotl_token::{TokenKind, TokenStream, TokenTree};
-use crate::err::{InvalidCharacter, UnexpectedEOFWhileFinding};
 
 pub(crate) struct Lexer {
     file: SourceFile,
@@ -138,10 +138,8 @@ impl Lexer {
 
             '\0' => None,
             ch => {
-                self.diagnostics.push(Diagnostic::new(
-                    InvalidCharacter(ch),
-                    self.create_span(),
-                ));
+                self.diagnostics
+                    .push(Diagnostic::new(InvalidCharacter(ch), self.create_span()));
                 None
             }
         }

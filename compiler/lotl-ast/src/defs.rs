@@ -1,8 +1,8 @@
+use crate::stmt::AstStatement;
 use crate::types::AstType;
 use std::string::String;
 use std::vec::Vec;
 use uuid::Uuid;
-use crate::stmt::AstStatement;
 
 /// Represents the ID of a top-level definition.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash)]

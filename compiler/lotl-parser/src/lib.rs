@@ -1,13 +1,12 @@
 //! Holds the Lotl parser.
 //! Exports a general `parse` method that transforms a file's TokenStream into a Vec<AstDefinition>
 #![deny(missing_docs)]
-
 mod defs;
 mod errors;
+mod expr;
 mod parser;
 mod stmt;
 mod util;
-mod expr;
 
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
@@ -78,7 +77,10 @@ mod tests {
 
     #[test]
     fn binop_function() {
-        let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20 - 30 / 40 * 50; }");
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { 10 + 20 - 30 / 40 * 50; }",
+        );
         let ast = lex(source).and_then(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
@@ -86,6 +88,23 @@ mod tests {
     #[test]
     fn parenthesized_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { ((10) + (20)); }");
+        let ast = lex(source).and_then(parse);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn application_function() {
+        let source = SourceFile::new("example.lotl", "func main() -> i32 { x.y; x[y]; x(y); }");
+        let ast = lex(source).and_then(parse);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn nested_application_function() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { std::io::println(x); x[10].y[14](abc); }",
+        );
         let ast = lex(source).and_then(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }

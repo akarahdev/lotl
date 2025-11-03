@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use crate::file::SourceFile;
+use std::fmt::Debug;
 
 /// Represents a span of characters in a source file.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
