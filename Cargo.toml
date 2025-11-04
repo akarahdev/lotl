@@ -11,4 +11,4 @@ lotl-token = { path = "compiler/lotl-token" }
 lotl-error = { path = "compiler/lotl-error" }
 lotl-ast = { path = "compiler/lotl-ast" }
 lotl-lexer = { path = "compiler/lotl-lexer" }
-uuid = "1.18.1"
+uuid = { version = "1.18.1", features = ["v4"] }

@@ -1,3 +1,4 @@
+use crate::ids::Tag;
 use crate::stmt::AstStatement;
 use crate::types::AstType;
 use std::string::String;
@@ -8,9 +9,25 @@ use uuid::Uuid;
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash)]
 pub struct AstDefinitionId(pub Uuid);
 
+impl Tag for AstDefinitionId {
+    type Input = String;
+
+    fn make_new_from(input: &Self::Input) -> Self {
+        // simple helper function, this is effectively a reimplementation
+        // of java's String#hashCode function
+        fn str_to_hash(s: &str) -> u128 {
+            s.chars().fold(0, |hash, ch| 31 * hash + ch as u128)
+        }
+        
+        AstDefinitionId(Uuid::from_u128(str_to_hash(input)))
+    }
+}
+
 /// Represents a top-level definition in the AST.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AstDefinition {
+    /// The general name associated with the definition.
+    pub name: String,
     /// The kind of definition this is.
     pub kind: AstDefinitionKind,
     /// The annotations applied to this definition.

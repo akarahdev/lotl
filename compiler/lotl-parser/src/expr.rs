@@ -1,6 +1,7 @@
 use crate::errors::ExpectedKindFoundKind;
 use crate::parser::Parser;
-use lotl_ast::expr::{AstExpr, BinaryOperationKind};
+use lotl_ast::expr::{AstExpr, BinaryOperationKind, ExprId};
+use lotl_ast::ids::PureTag;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_token::TokenKind;
 
@@ -19,6 +20,7 @@ impl Parser {
                     lhs: Box::new(base),
                     rhs: Box::new(self.parse_factor()),
                     op_span,
+                    id: ExprId::make_new(),
                 };
             } else if self.peek().kind == TokenKind::Minus {
                 let op_span = self.next().location.clone();
@@ -27,6 +29,7 @@ impl Parser {
                     lhs: Box::new(base),
                     rhs: Box::new(self.parse_factor()),
                     op_span,
+                    id: ExprId::make_new(),
                 }
             } else {
                 break;
@@ -46,6 +49,7 @@ impl Parser {
                     lhs: Box::new(base),
                     rhs: Box::new(self.parse_applications()),
                     op_span,
+                    id: ExprId::make_new(),
                 };
             } else if self.peek().kind == TokenKind::Slash {
                 let op_span = self.next().location.clone();
@@ -54,6 +58,7 @@ impl Parser {
                     lhs: Box::new(base),
                     rhs: Box::new(self.parse_applications()),
                     op_span,
+                    id: ExprId::make_new(),
                 }
             } else {
                 break;
@@ -77,6 +82,7 @@ impl Parser {
                 base = AstExpr::Invocation {
                     func: Box::new(base),
                     parameters,
+                    id: ExprId::make_new(),
                 }
             } else if let TokenKind::Brackets(stream) = &lookahead.kind {
                 let index = self.parse_single_stream(stream.clone(), Parser::parse_expr);
@@ -84,6 +90,7 @@ impl Parser {
                 base = AstExpr::Subscript {
                     obj: Box::new(base),
                     index: Box::new(index),
+                    id: ExprId::make_new(),
                 }
             } else if let TokenKind::Dot = lookahead.kind.clone() {
                 self.next();
@@ -91,6 +98,7 @@ impl Parser {
                 base = AstExpr::FieldAccess {
                     obj: Box::new(base),
                     field: ident,
+                    id: ExprId::make_new(),
                 }
             } else if let TokenKind::Colon = lookahead.kind.clone() {
                 self.next();
@@ -111,6 +119,7 @@ impl Parser {
                 base = AstExpr::NamespaceAccess {
                     obj: Box::new(base),
                     path: ident,
+                    id: ExprId::make_new(),
                 }
             } else {
                 break;
@@ -148,6 +157,7 @@ impl Parser {
                 AstExpr::Numeric {
                     number: num.clone(),
                     span,
+                    id: ExprId::make_new(),
                 }
             }
             TokenKind::Ident(name) => {
@@ -155,6 +165,7 @@ impl Parser {
                 AstExpr::Identifier {
                     name: name.clone(),
                     span,
+                    id: ExprId::make_new(),
                 }
             }
             TokenKind::Parenthesis(inner) => {
@@ -175,6 +186,7 @@ impl Parser {
                 AstExpr::Numeric {
                     number: "".to_string(),
                     span: token.location.clone(),
+                    id: ExprId::make_new(),
                 }
             }
         }

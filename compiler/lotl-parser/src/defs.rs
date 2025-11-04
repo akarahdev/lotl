@@ -2,9 +2,9 @@ use crate::errors::ExpectedKindFoundKind;
 use crate::expect_kind;
 use crate::parser::Parser;
 use lotl_ast::defs::{AstDefinition, AstDefinitionId, AstDefinitionKind};
+use lotl_ast::ids::Tag;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_token::{TokenKind, TokenStream};
-use uuid::Uuid;
 
 impl Parser {
     pub fn parse_header(&mut self) -> Option<AstDefinition> {
@@ -92,6 +92,8 @@ impl Parser {
             )
         }
         Some(AstDefinition {
+            name: name.clone(),
+            id: AstDefinitionId::make_new_from(&name),
             kind: AstDefinitionKind::Function {
                 name,
                 parameters: vec![],
@@ -100,7 +102,6 @@ impl Parser {
                 statements,
             },
             annotations: vec![],
-            id: AstDefinitionId(Uuid::new_v4()),
         })
     }
 
