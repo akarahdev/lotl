@@ -1,7 +1,7 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
+use crate::IRComponent;
 use std::boxed::Box;
 use std::string::String;
 
@@ -109,25 +109,21 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use deranged::RangedU32;
+    use crate::IRComponent;
     use std::vec;
 
     #[test]
     fn build_allocating_function() {
         let body = FunctionBody::new(|mut block| {
-            let stack_ptr = block.alloca(Types::integer(RangedU32::new(32).unwrap()));
-            block.store(
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                stack_ptr.clone(),
-            );
-            let loaded = block.load(Types::integer(RangedU32::new(32).unwrap()), stack_ptr);
+            let stack_ptr = block.alloca(Types::integer(32));
+            block.store(Values::integer("10", 32), stack_ptr.clone());
+            let loaded = block.load(Types::integer(32), stack_ptr);
             block.ret(loaded);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -144,20 +140,12 @@ mod tests {
     fn build_getelementptr_function() {
         let body = FunctionBody::new(|mut block| {
             let struct_type = Types::structure(vec![
-                Types::integer(RangedU32::new(32).unwrap()),
-                Types::integer(RangedU32::new(32).unwrap()),
+                Types::integer(32),
+                Types::integer(32),
             ]);
             let struct_const = Values::zeroinitializer(struct_type.clone());
-            let struct_const_1 = block.insertvalue(
-                struct_const,
-                Values::integer("0", RangedU32::new(32).unwrap()).unwrap(),
-                0,
-            );
-            let struct_const_2 = block.insertvalue(
-                struct_const_1,
-                Values::integer("1", RangedU32::new(32).unwrap()).unwrap(),
-                1,
-            );
+            let struct_const_1 = block.insertvalue(struct_const, Values::integer("0", 32), 0);
+            let struct_const_2 = block.insertvalue(struct_const_1, Values::integer("1", 32), 1);
             let stack_ptr = block.alloca(struct_type.clone());
 
             block.store(struct_const_2, stack_ptr.clone());
@@ -165,15 +153,15 @@ mod tests {
             let second_element_ptr = block.getelementptr(
                 struct_type.clone(),
                 stack_ptr.clone(),
-                vec![Values::integer("1", RangedU32::new(32).unwrap()).unwrap()],
+                vec![Values::integer("1", 32)],
             );
             let loaded = block.load(
-                Types::integer(RangedU32::new(32).unwrap()),
+                Types::integer(32),
                 second_element_ptr,
             );
             block.ret(loaded);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \

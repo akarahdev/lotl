@@ -1,7 +1,7 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
+use crate::IRComponent;
 use std::boxed::Box;
 use std::string::{String, ToString};
 use std::vec::Vec;
@@ -174,26 +174,22 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use deranged::RangedU32;
+    use crate::IRComponent;
     use std::vec;
 
     #[test]
     fn build_extracting_function() {
         let body = FunctionBody::new(|mut block| {
             let summed = block.extractvalue(
-                Values::structure(vec![
-                    Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                    Values::integer("20", RangedU32::new(64).unwrap()).unwrap(),
-                ]),
+                Values::structure(vec![Values::integer("10", 32), Values::integer("20", 64)]),
                 0,
             );
             block.ret(summed);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -208,19 +204,11 @@ mod tests {
     fn build_inserting_function() {
         let body = FunctionBody::new(|mut block| {
             let init_struct = Values::zeroinitializer(Types::structure(vec![
-                Types::integer(RangedU32::new(32).unwrap()),
-                Types::integer(RangedU32::new(64).unwrap()),
+                Types::integer(32),
+                Types::integer(64),
             ]));
-            let inserted_0 = block.insertvalue(
-                init_struct,
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                0,
-            );
-            let _inserted_1 = block.insertvalue(
-                inserted_0,
-                Values::integer("20", RangedU32::new(64).unwrap()).unwrap(),
-                1,
-            );
+            let inserted_0 = block.insertvalue(init_struct, Values::integer("10", 32), 0);
+            let _inserted_1 = block.insertvalue(inserted_0, Values::integer("20", 64), 1);
             block.ret_void();
         });
         let f = GlobalFunction::new("main", Types::void()).body(body);

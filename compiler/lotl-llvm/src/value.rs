@@ -1,6 +1,5 @@
-use crate::IRComponent;
 use crate::types::{Type, Types};
-use deranged::RangedU32;
+use crate::IRComponent;
 use std::string::String;
 use std::vec::Vec;
 
@@ -43,16 +42,16 @@ pub struct Values;
 
 impl Values {
     /// Generates a new integer constant, with a maximum width of (2^22 - 1).
-    pub fn integer(contents: &str, size: RangedU32<0, 8388607>) -> Option<Value> {
+    pub fn integer(contents: &str, size: u32) -> Value {
+        if size > 8388607 {
+            panic!("too big integer, must be i8388607 or smaller")
+        }
         for (idx, ch) in contents.chars().enumerate() {
             if !(ch.is_ascii_digit() || (ch == '-' && idx == 0)) {
-                return None;
+                panic!("invalid character in integer: '{}'", contents);
             }
         }
-        Some(Value::Integer(
-            contents.parse().unwrap(),
-            Types::integer(size),
-        ))
+        Value::Integer(contents.parse().unwrap(), Types::integer(size))
     }
 
     /// Creates a new constant structure value, with the provided values as elements
@@ -110,10 +109,9 @@ impl Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::types::Type;
     use crate::value::{Value, Values};
-    use deranged::RangedU32;
+    use crate::IRComponent;
     use std::string::ToString;
     use std::vec;
 
@@ -129,13 +127,13 @@ mod tests {
     }
     #[test]
     pub fn test_int_constants() {
-        let value = Values::integer("1256", RangedU32::new(32).unwrap()).unwrap();
+        let value = Values::integer("1256", 32);
         assert_eq!(value.emit(), "i32 1256");
     }
     #[test]
     pub fn test_structure_constants() {
         let value = Values::structure(vec![
-            Values::integer("1256", RangedU32::new(32).unwrap()).unwrap(),
+            Values::integer("1256", 32),
         ]);
         assert_eq!(value.emit(), "{i32} {i32 1256}");
     }

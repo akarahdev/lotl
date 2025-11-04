@@ -1,7 +1,7 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::types::Type;
 use crate::value::Value;
+use crate::IRComponent;
 use std::boxed::Box;
 use std::format;
 use std::string::String;
@@ -106,18 +106,17 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use deranged::RangedU32;
+    use crate::IRComponent;
 
     #[test]
     fn build_returning_function() {
         let body = FunctionBody::new(|block| {
-            block.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
+            block.ret(Values::integer("120", 32));
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -131,7 +130,7 @@ mod tests {
         let body = FunctionBody::new(|block| {
             block.unreachable();
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -145,16 +144,16 @@ mod tests {
     fn build_cond_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br_if(
-                Values::integer("1", RangedU32::new(1).unwrap()).unwrap(),
+                Values::integer("1", 1),
                 |true_label| {
-                    true_label.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
+                    true_label.ret(Values::integer("120", 32));
                 },
                 |false_label| {
-                    false_label.ret(Values::integer("240", RangedU32::new(32).unwrap()).unwrap());
+                    false_label.ret(Values::integer("240", 32));
                 },
             );
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -172,10 +171,10 @@ mod tests {
     fn build_static_branching_function() {
         let body = FunctionBody::new(|block| {
             block.br(|true_label| {
-                true_label.ret(Values::integer("120", RangedU32::new(32).unwrap()).unwrap());
+                true_label.ret(Values::integer("120", 32));
             });
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \

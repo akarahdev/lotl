@@ -11,7 +11,4 @@ lotl-token = { path = "compiler/lotl-token" }
 lotl-error = { path = "compiler/lotl-error" }
 lotl-ast = { path = "compiler/lotl-ast" }
 lotl-lexer = { path = "compiler/lotl-lexer" }
-deranged = "0.5.4"
 uuid = "1.18.1"
-strum = "0.27"
-strum_macros = "0.27"

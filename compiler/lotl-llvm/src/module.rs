@@ -46,21 +46,20 @@ pub trait ModuleComponent: IRComponent {}
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::GlobalVariable;
     use crate::module::LinkageType;
     use crate::types::Types;
     use crate::value::Value;
-    use deranged::RangedU32;
+    use crate::IRComponent;
     use std::string::ToString;
 
     #[test]
     pub fn generate_simple_global_variable() {
-        let var = GlobalVariable::new("foo", Types::integer(RangedU32::new(32).unwrap()))
+        let var = GlobalVariable::new("foo", Types::integer(32))
             .with_linkage(LinkageType::Internal)
             .with_value(Value::Integer(
                 "1240".to_string(),
-                Types::integer(RangedU32::new(32).unwrap()),
+                Types::integer(32),
             ));
         assert_eq!(var.emit(), "@foo = internal global i32 1240");
     }

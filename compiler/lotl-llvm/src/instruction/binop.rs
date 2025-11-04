@@ -1,6 +1,6 @@
-use crate::IRComponent;
 use crate::instruction::{BasicBlockHandle, Instruction};
 use crate::value::Value;
+use crate::IRComponent;
 use std::boxed::Box;
 use std::string::String;
 
@@ -154,22 +154,18 @@ impl BasicBlockHandle<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::module::{FunctionBody, GlobalFunction};
     use crate::types::Types;
     use crate::value::Values;
-    use deranged::RangedU32;
+    use crate::IRComponent;
 
     #[test]
     fn build_adding_function() {
         let body = FunctionBody::new(|mut block| {
-            let summed = block.add(
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                Values::integer("20", RangedU32::new(32).unwrap()).unwrap(),
-            );
+            let summed = block.add(Values::integer("10", 32), Values::integer("20", 32));
             block.ret(summed);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -184,12 +180,12 @@ mod tests {
     fn build_multiply_function() {
         let body = FunctionBody::new(|mut block| {
             let product = block.mul(
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                Values::integer("20", RangedU32::new(32).unwrap()).unwrap(),
+                Values::integer("10", 32),
+                Values::integer("20", 32),
             );
             block.ret(product);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \
@@ -204,16 +200,16 @@ mod tests {
     fn build_dividing_function() {
         let body = FunctionBody::new(|mut block| {
             let product = block.sdiv(
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                Values::integer("20", RangedU32::new(32).unwrap()).unwrap(),
+                Values::integer("10", 32),
+                Values::integer("20", 32),
             );
             let _product2 = block.udiv(
-                Values::integer("10", RangedU32::new(32).unwrap()).unwrap(),
-                Values::integer("20", RangedU32::new(32).unwrap()).unwrap(),
+                Values::integer("10", 32),
+                Values::integer("20", 32),
             );
             block.ret(product);
         });
-        let f = GlobalFunction::new("main", Types::integer(RangedU32::new(32).unwrap())).body(body);
+        let f = GlobalFunction::new("main", Types::integer(32)).body(body);
         assert_eq!(
             f.emit(),
             "define i32 @main() { \

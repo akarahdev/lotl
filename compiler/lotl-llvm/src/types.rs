@@ -1,5 +1,4 @@
 use crate::IRComponent;
-use deranged::RangedU32;
 use std::boxed::Box;
 use std::string::{String, ToString};
 use std::vec::Vec;
@@ -82,8 +81,8 @@ pub struct Types;
 
 impl Types {
     /// Generates a new integer type, with a maximum width of (2^22 - 1)
-    pub fn integer(width: RangedU32<0, 8388607>) -> Type {
-        Type::Integer(width.get())
+    pub fn integer(width: u32) -> Type {
+        Type::Integer(width)
     }
     /// Generates a new array type, with the specified length and element type
     pub fn array(length: u32, subtype: Type) -> Type {
@@ -103,20 +102,19 @@ impl Types {
 
 #[cfg(test)]
 mod tests {
-    use crate::IRComponent;
     use crate::types::{Type, Types};
-    use deranged::RangedU32;
+    use crate::IRComponent;
     use std::vec;
 
     #[test]
     pub fn test_integers() {
-        let int = Types::integer(RangedU32::new(32).unwrap());
+        let int = Types::integer(32);
         assert_eq!(int.emit(), "i32");
     }
 
     #[test]
     pub fn test_arrays() {
-        let int = Types::array(4, Types::integer(RangedU32::new(32).unwrap()));
+        let int = Types::array(4, Types::integer(32));
         assert_eq!(int.emit(), "[ 4 x i32 ]");
     }
     #[test]
