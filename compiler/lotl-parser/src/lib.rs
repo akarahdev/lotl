@@ -36,42 +36,42 @@ mod tests {
     #[test]
     fn empty_file() {
         let source = SourceFile::new("example.lotl", "");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn simple_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { } ");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn simple_content_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { 1; 2; 3; } ");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn simple_generic_function() {
         let source = SourceFile::new("example.lotl", "func main[T]() -> T { } ");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn bad_typeless_function() {
         let source = SourceFile::new("example.lotl", "func main() -> { }");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 1);
     }
 
     #[test]
     fn bad_paramless_function() {
         let source = SourceFile::new("example.lotl", "func main -> i32 { }");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 1);
     }
 
@@ -81,21 +81,21 @@ mod tests {
             "example.lotl",
             "func main() -> i32 { 10 + 20 - 30 / 40 * 50; }",
         );
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn parenthesized_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { ((10) + (20)); }");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
     #[test]
     fn application_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { x.y; x[y]; x(y); }");
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
@@ -105,7 +105,7 @@ mod tests {
             "example.lotl",
             "func main() -> i32 { std::io::println(x); x[10].y[14](abc); }",
         );
-        let ast = lex(source).and_then(parse);
+        let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

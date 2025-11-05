@@ -3,7 +3,7 @@ use lotl_error::span::Span;
 use uuid::Uuid;
 
 /// Represents the ID of an AST expression.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ExprId(pub Uuid);
 
 impl Tag for ExprId {

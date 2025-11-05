@@ -6,7 +6,7 @@ use std::vec::Vec;
 use uuid::Uuid;
 
 /// Represents the ID of a top-level definition.
-#[derive(Debug, Clone, PartialEq, PartialOrd, Hash)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
 pub struct AstDefinitionId(pub Uuid);
 
 impl Tag for AstDefinitionId {
