@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "compiler/lotl-ast", "compiler/lotl-error", "compiler/lotl-lexer",
-    "compiler/lotl-llvm", "compiler/lotl-parser",
+    "compiler/lotl-llvm-api", "compiler/lotl-parser",
     "compiler/lotl-token", "compiler/lotl-typechk"]
 resolver = "3"
 
@@ -11,4 +11,5 @@ lotl-error = { path = "compiler/lotl-error" }
 lotl-ast = { path = "compiler/lotl-ast" }
 lotl-lexer = { path = "compiler/lotl-lexer" }
 lotl-parser = { path = "compiler/lotl-parser" }
+lotl-llvm-api = { path = "compiler/lotl-llvm-api" }
 uuid = { version = "1.18.1", features = ["v4"] }
