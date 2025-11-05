@@ -16,6 +16,9 @@ impl<'a> TypeGatherer<'a> {
                 AstStatement::Drop { expr, .. } => {
                     self.infer_expr(stack, expr);
                 }
+                AstStatement::Returns { expr, .. } => {
+                    self.infer_expr(stack, expr);
+                }
             }
         }
         stack.pop_frame();

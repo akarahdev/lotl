@@ -1,7 +1,7 @@
-use crate::IRComponent;
-use crate::instruction::{BasicBlock, BasicBlockHandle};
+use crate::instruction::BasicBlock;
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
+use crate::IRComponent;
 use std::string::{String, ToString};
 use std::vec::Vec;
 
@@ -84,11 +84,11 @@ pub struct FunctionBody {
 impl FunctionBody {
     /// Creates a new function body. This gives you a reference to a Basic Block, which is
     /// the entrypoint of the function body.
-    pub fn new<F: FnOnce(BasicBlockHandle)>(handler: F) -> Self {
+    pub fn new<F: FnOnce(&mut BasicBlock)>(handler: F) -> Self {
         let mut f = FunctionBody {
             entry: BasicBlock::entry("entry"),
         };
-        handler(BasicBlockHandle(&mut f.entry));
+        handler(&mut f.entry);
         f
     }
 }

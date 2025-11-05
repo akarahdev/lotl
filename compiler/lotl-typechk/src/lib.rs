@@ -65,7 +65,6 @@ mod tests {
     fn binop_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20; }");
         let ast = lex(source).bind(parse).fork(infer_program);
-        eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

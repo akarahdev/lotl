@@ -32,6 +32,13 @@ impl<T> Results<T> {
     pub fn map<U, F: Fn(T) -> U>(self, f: F) -> Results<U> {
         Results::new(f(self.output), self.diagnostics)
     }
+    
+    /// Inspects the data inside of the Results.
+    pub fn peek<F: Fn(&T)>(self, f: F) -> Results<T> {
+        f(&self.output);
+        Results::new(self.output, self.diagnostics)
+    }
+    
 
     /// Forks the data to create a second pipeline of conversion.
     pub fn fork<U, F: Fn(&T) -> Results<U>>(self, f: F) -> Results<(T, U)> {

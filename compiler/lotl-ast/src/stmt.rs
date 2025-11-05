@@ -36,6 +36,13 @@ pub enum AstStatement {
         /// ID of the statement
         id: StatementId,
     },
+    /// Returns the value from the function
+    Returns {
+        /// The expression to return
+        expr: AstExpr,
+        /// ID of the statement
+        id: StatementId
+    }
 }
 
 impl Tagged<StatementId> for AstStatement {
@@ -43,6 +50,7 @@ impl Tagged<StatementId> for AstStatement {
         match self {
             AstStatement::Storage { id, .. } => id,
             AstStatement::Drop { id, .. } => id,
+            AstStatement::Returns { id, .. } => id
         }
     }
 }

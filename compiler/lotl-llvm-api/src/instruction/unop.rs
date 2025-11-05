@@ -23,6 +23,7 @@ impl IRComponent for UnaryOp {
 impl Instruction for UnaryOp {}
 
 impl BasicBlock {
+    /// Negates the provided floating point.
     pub fn fneg(&mut self, value: Value) -> Value {
         let (name, out) = self.create_local_register(value.ty().clone());
         self.instructions.push(Box::new(UnaryOp {

@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlockHandle, Instruction};
+use crate::instruction::{BasicBlock, Instruction};
 use crate::value::Value;
 use crate::IRComponent;
 use std::boxed::Box;
@@ -53,7 +53,8 @@ impl IRComponent for BinOp {
 }
 impl Instruction for BinOp {}
 
-impl BasicBlockHandle<'_> {
+impl BasicBlock {
+    /// Add two integers together.
     pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -64,6 +65,8 @@ impl BasicBlockHandle<'_> {
         }));
         value
     }
+
+    /// Subtract two integers.
     pub fn sub(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -75,6 +78,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Multiply two integers.
     pub fn mul(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -86,6 +90,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Perform signed division.
     pub fn sdiv(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -97,6 +102,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Perform unsigned division.
     pub fn udiv(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -108,6 +114,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Adds two floats together.
     pub fn fadd(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -118,6 +125,8 @@ impl BasicBlockHandle<'_> {
         }));
         value
     }
+
+    /// Subtracts two floats.
     pub fn fsub(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -129,6 +138,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Multiplies two floats together.
     pub fn fmul(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -140,6 +150,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Divides two floats.
     pub fn fdiv(&mut self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
         self.instructions.push(Box::new(BinOp {
@@ -161,7 +172,7 @@ mod tests {
 
     #[test]
     fn build_adding_function() {
-        let body = FunctionBody::new(|mut block| {
+        let body = FunctionBody::new(|block| {
             let summed = block.add(Values::integer("10", 32), Values::integer("20", 32));
             block.ret(summed);
         });
@@ -178,11 +189,8 @@ mod tests {
 
     #[test]
     fn build_multiply_function() {
-        let body = FunctionBody::new(|mut block| {
-            let product = block.mul(
-                Values::integer("10", 32),
-                Values::integer("20", 32),
-            );
+        let body = FunctionBody::new(|block| {
+            let product = block.mul(Values::integer("10", 32), Values::integer("20", 32));
             block.ret(product);
         });
         let f = GlobalFunction::new("main", Types::integer(32)).body(body);
@@ -198,15 +206,9 @@ mod tests {
 
     #[test]
     fn build_dividing_function() {
-        let body = FunctionBody::new(|mut block| {
-            let product = block.sdiv(
-                Values::integer("10", 32),
-                Values::integer("20", 32),
-            );
-            let _product2 = block.udiv(
-                Values::integer("10", 32),
-                Values::integer("20", 32),
-            );
+        let body = FunctionBody::new(|block| {
+            let product = block.sdiv(Values::integer("10", 32), Values::integer("20", 32));
+            let _product2 = block.udiv(Values::integer("10", 32), Values::integer("20", 32));
             block.ret(product);
         });
         let f = GlobalFunction::new("main", Types::integer(32)).body(body);

@@ -11,9 +11,44 @@ pub use globals::*;
 ///
 /// LLVM programs are composed of Modules, each of which is a translation unit of the input programs.
 /// Each module consists of functions, global variables, and symbol table entries.
-pub struct Module {}
+pub struct Module {
+    /// The list of global variables in the module
+    pub vars: Vec<GlobalVariable>,
+    /// The list of global functions in the module
+    pub functions: Vec<GlobalFunction>,
+}
+
+impl Default for Module {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Module {
+    /// Creates a new empty module
+    pub fn new() -> Self {
+        Module {
+            vars: Vec::new(),
+            functions: Vec::new(),
+        }
+    }
+}
+
+impl IRComponent for Module {
+    fn append_to_string(&self, string: &mut String) {
+        for var in &self.vars {
+            var.append_to_string(string);
+            string.push_str("\n\n");
+        }
+        for function in &self.functions {
+            function.append_to_string(string);
+            string.push_str("\n\n");
+        }
+    }
+}
 
 /// Represents the Linkage Type of Global Variables and Function.
+#[derive(Debug)]
 pub enum LinkageType {
     /// Global values with this linkage are only directly accessible by objects in the current
     /// module.
@@ -57,10 +92,7 @@ mod tests {
     pub fn generate_simple_global_variable() {
         let var = GlobalVariable::new("foo", Types::integer(32))
             .with_linkage(LinkageType::Internal)
-            .with_value(Value::Integer(
-                "1240".to_string(),
-                Types::integer(32),
-            ));
+            .with_value(Value::Integer("1240".to_string(), Types::integer(32)));
         assert_eq!(var.emit(), "@foo = internal global i32 1240");
     }
 }

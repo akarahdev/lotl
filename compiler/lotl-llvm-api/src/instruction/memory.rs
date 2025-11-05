@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlockHandle, Instruction};
+use crate::instruction::{BasicBlock, Instruction};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -53,12 +53,14 @@ impl IRComponent for Alloca {
 }
 impl Instruction for Alloca {}
 
-impl BasicBlockHandle<'_> {
+impl BasicBlock {
+    /// Stores a value into the pointer.
     pub fn store(&mut self, value: Value, pointer: Value) {
         self.instructions
             .push(Box::new(StoreValue { value, pointer }));
     }
 
+    /// Loads a value from the pointer.
     pub fn load(&mut self, ty: Type, pointer: Value) -> Value {
         let (name, value) = self.create_local_register(ty.clone());
         self.instructions.push(Box::new(LoadValue {
@@ -69,6 +71,7 @@ impl BasicBlockHandle<'_> {
         value
     }
 
+    /// Allocates memory on the stack of the given type.
     pub fn alloca(&mut self, ty: Type) -> Value {
         let (name, value) = self.create_local_register(Type::Ptr);
         self.instructions.push(Box::new(Alloca {
@@ -77,34 +80,6 @@ impl BasicBlockHandle<'_> {
         }));
         value
     }
-
-    // pub fn extractvalue(&mut self, structure: Value, index: usize) -> Value {
-    //     match structure.ty() {
-    //         Type::Structure(parameters) => {
-    //             let (name, value) =
-    //                 self.create_local_register(parameters.get(index).unwrap().clone());
-    //             self.instructions.push(Box::new(ExtractValue {
-    //                 returns_in: name,
-    //                 structure,
-    //                 index,
-    //             }));
-    //             value
-    //         }
-    //         Type::Array(length, element) => {
-    //             if index > (*length as usize) {
-    //                 panic!("extractvalue index out of bounds");
-    //             }
-    //             let (name, value) = self.create_local_register(*element.clone());
-    //             self.instructions.push(Box::new(ExtractValue {
-    //                 returns_in: name,
-    //                 structure,
-    //                 index,
-    //             }));
-    //             value
-    //         }
-    //         _ => panic!("extractvalue requires a structure or array type"),
-    //     }
-    // }
 }
 
 #[cfg(test)]
@@ -117,7 +92,7 @@ mod tests {
 
     #[test]
     fn build_allocating_function() {
-        let body = FunctionBody::new(|mut block| {
+        let body = FunctionBody::new(|block| {
             let stack_ptr = block.alloca(Types::integer(32));
             block.store(Values::integer("10", 32), stack_ptr.clone());
             let loaded = block.load(Types::integer(32), stack_ptr);
@@ -138,11 +113,8 @@ mod tests {
 
     #[test]
     fn build_getelementptr_function() {
-        let body = FunctionBody::new(|mut block| {
-            let struct_type = Types::structure(vec![
-                Types::integer(32),
-                Types::integer(32),
-            ]);
+        let body = FunctionBody::new(|block| {
+            let struct_type = Types::structure(vec![Types::integer(32), Types::integer(32)]);
             let struct_const = Values::zeroinitializer(struct_type.clone());
             let struct_const_1 = block.insertvalue(struct_const, Values::integer("0", 32), 0);
             let struct_const_2 = block.insertvalue(struct_const_1, Values::integer("1", 32), 1);
@@ -155,10 +127,7 @@ mod tests {
                 stack_ptr.clone(),
                 vec![Values::integer("1", 32)],
             );
-            let loaded = block.load(
-                Types::integer(32),
-                second_element_ptr,
-            );
+            let loaded = block.load(Types::integer(32), second_element_ptr);
             block.ret(loaded);
         });
         let f = GlobalFunction::new("main", Types::integer(32)).body(body);

@@ -9,7 +9,8 @@
 #![deny(missing_docs)]
 #![allow(dead_code)]
 
-mod instruction;
+/// The module holding LLVM instructions.
+pub mod instruction;
 /// The module for LLVM IR modules
 pub mod module;
 /// The module for LLVM IR types

@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlockHandle, Instruction};
+use crate::instruction::{BasicBlock, Instruction};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -70,7 +70,8 @@ impl IRComponent for GetElementPtr {
 }
 impl Instruction for GetElementPtr {}
 
-impl BasicBlockHandle<'_> {
+impl BasicBlock {
+    /// Extracts a value out of the aggregate at the index.
     pub fn extractvalue(&mut self, structure: Value, index: usize) -> Value {
         match structure.ty() {
             Type::Structure(parameters) => {
@@ -99,6 +100,7 @@ impl BasicBlockHandle<'_> {
         }
     }
 
+    /// Inserts a value into the aggregate at the index.
     pub fn insertvalue(&mut self, structure: Value, insertion: Value, index: usize) -> Value {
         match structure.ty() {
             Type::Structure(parameters) => {
@@ -142,6 +144,7 @@ impl BasicBlockHandle<'_> {
         }
     }
 
+    /// Gets a pointer to the element at the aggregate at the index
     pub fn getelementptr(&mut self, ty: Type, base: Value, indices: Vec<Value>) -> Value {
         let mut param_ty: Type = ty.clone();
         for index in &indices {
@@ -182,7 +185,7 @@ mod tests {
 
     #[test]
     fn build_extracting_function() {
-        let body = FunctionBody::new(|mut block| {
+        let body = FunctionBody::new(|block| {
             let summed = block.extractvalue(
                 Values::structure(vec![Values::integer("10", 32), Values::integer("20", 64)]),
                 0,
@@ -202,7 +205,7 @@ mod tests {
 
     #[test]
     fn build_inserting_function() {
-        let body = FunctionBody::new(|mut block| {
+        let body = FunctionBody::new(|block| {
             let init_struct = Values::zeroinitializer(Types::structure(vec![
                 Types::integer(32),
                 Types::integer(64),

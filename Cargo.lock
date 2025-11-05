@@ -51,6 +51,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "lotl-codegen-llvm"
+version = "0.1.0"
+dependencies = [
+ "lotl-ast",
+ "lotl-error",
+ "lotl-lexer",
+ "lotl-llvm-api",
+ "lotl-parser",
+ "lotl-typechk",
+]
+
+[[package]]
 name = "lotl-error"
 version = "0.1.0"
 
