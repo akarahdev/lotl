@@ -7,7 +7,6 @@ mod unop;
 
 use crate::IRComponent;
 use std::boxed::Box;
-use std::ops::Deref;
 use std::string::String;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
@@ -23,16 +22,4 @@ pub struct BasicBlock {
     label: String,
     instructions: Vec<Box<dyn Instruction>>,
     pub(crate) children: Vec<BasicBlock>,
-}
-
-/// Represents a pointer to a basic block.
-#[derive(Clone)]
-pub struct BasicBlockHandle<'a>(pub(crate) &'a BasicBlock);
-
-impl Deref for BasicBlockHandle<'_> {
-    type Target = BasicBlock;
-
-    fn deref(&self) -> &Self::Target {
-        self.0
-    }
 }
