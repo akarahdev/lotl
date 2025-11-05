@@ -8,8 +8,8 @@ mod err;
 mod lexer;
 
 use crate::lexer::Lexer;
-use lotl_error::Results;
 use lotl_error::file::SourceFile;
+use lotl_error::results::Results;
 use lotl_token::TokenStream;
 
 /// Converts a file into a token stream.

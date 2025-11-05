@@ -5,7 +5,7 @@
 use crate::context::TyContext;
 use crate::gatherer::{TypeGatherer, TypedStack};
 use lotl_ast::defs::{AstDefinition, AstDefinitionKind};
-use lotl_error::Results;
+use lotl_error::results::Results;
 use std::ops::Deref;
 
 /// Infers types for a given program.

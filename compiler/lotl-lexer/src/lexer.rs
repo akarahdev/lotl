@@ -1,7 +1,7 @@
 use crate::err::{InvalidCharacter, UnexpectedEOFWhileFinding};
-use lotl_error::Results;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_error::file::SourceFile;
+use lotl_error::results::Results;
 use lotl_error::span::Span;
 use lotl_token::{TokenKind, TokenStream, TokenTree};
 

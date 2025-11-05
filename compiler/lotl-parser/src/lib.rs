@@ -10,7 +10,7 @@ mod util;
 
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
-use lotl_error::Results;
+use lotl_error::results::Results;
 use lotl_token::{TokenKind, TokenStream};
 
 /// Parses a TokenStream into a series of AstDefinitions.
