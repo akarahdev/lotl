@@ -46,6 +46,11 @@ pub fn infer_header_data(ctx: &mut TyContext, header: &AstDefinition) {
                 gatherer.infer_stmts(&mut stack, stmts_vec);
             }
         }
+        AstDefinitionKind::Namespace { members, .. } => {
+            for member in members {
+                infer_header_data(ctx, member);
+            }
+        }
     }
 }
 
@@ -65,6 +70,23 @@ mod tests {
     fn binop_function() {
         let source = SourceFile::new("example.lotl", "func main() -> i32 { 10 + 20; }");
         let ast = lex(source).bind(parse).fork(infer_program);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn namespaced_function() {
+        let source = SourceFile::new("example.lotl", r#"
+        namespace h {
+            func a() -> i32 {
+                return 0;
+            }
+        }
+        func b() -> i32 {
+            return h::a();
+        }
+        "#);
+        let ast = lex(source).bind(parse).fork(infer_program);
+        eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

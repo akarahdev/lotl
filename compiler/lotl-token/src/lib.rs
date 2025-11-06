@@ -101,6 +101,8 @@ pub enum TokenKind {
     WhileKeyword,
     /// The `for` keyword
     ForKeyword,
+    /// The `namespace` keyword
+    NamespaceKeyword,
 
     /// Represents a comma: `,`
     Comma,
@@ -195,6 +197,7 @@ impl TokenKind {
             TokenKind::At => "@",
             TokenKind::Arrow => "->",
             TokenKind::EndOfStream => "EOF",
+            TokenKind::NamespaceKeyword => "namespace",
         }
     }
 }

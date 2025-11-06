@@ -12,10 +12,11 @@ impl Parser {
         match &kw_tok.kind {
             TokenKind::EndOfStream => None,
             TokenKind::FuncKeyword => self.parse_function(),
+            TokenKind::NamespaceKeyword => self.parse_namespace(),
             _ => {
                 self.push_err(Diagnostic::new(
                     ExpectedKindFoundKind {
-                        expected: &[TokenKind::FuncKeyword],
+                        expected: &[TokenKind::FuncKeyword, TokenKind::NamespaceKeyword],
                         found: kw_tok.kind.clone(),
                     },
                     kw_tok.location.clone(),
@@ -24,6 +25,41 @@ impl Parser {
                 None
             }
         }
+    }
+
+    pub fn parse_namespace(&mut self) -> Option<AstDefinition> {
+        let _kw_tok = self.next();
+        let name_tok = self.next();
+
+        let name = if let TokenKind::Ident(name) = name_tok.kind.clone() {
+            name
+        } else {
+            self.push_err(Diagnostic::new(
+                ExpectedKindFoundKind {
+                    expected: &[TokenKind::Ident("".to_string())],
+                    found: name_tok.kind.clone(),
+                },
+                name_tok.location.clone(),
+            ));
+            "__unnamed".to_string()
+        };
+
+        if let TokenKind::Braces(block_tokens) = &self.peek().kind {
+            self.next();
+
+            let parts = self.parse_unlimited_series(block_tokens.clone(), Parser::parse_header);
+
+            return Some(AstDefinition {
+                id: AstDefinitionId::make_new_from(&name),
+                name: name.clone(),
+                kind: AstDefinitionKind::Namespace {
+                    name,
+                    members: parts.iter().flatten().cloned().collect(),
+                },
+                annotations: vec![],
+            });
+        }
+        None
     }
 
     pub fn parse_function(&mut self) -> Option<AstDefinition> {

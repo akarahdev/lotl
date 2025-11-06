@@ -29,5 +29,10 @@ pub fn ast_to_header(ast: &AstDefinition, ctx: &TyContext, module: &mut Module) 
             }
             module.functions.push(func);
         }
+        AstDefinitionKind::Namespace { members, .. } => {
+            for member in members {
+                ast_to_header(member, ctx, module);
+            }
+        }
     }
 }

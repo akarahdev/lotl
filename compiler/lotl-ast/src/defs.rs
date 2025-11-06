@@ -52,6 +52,13 @@ pub enum AstDefinitionKind {
         /// The statements of the function.
         statements: Option<Vec<AstStatement>>,
     },
+    /// Represents a namespace
+    Namespace {
+        /// The name of the namespace
+        name: String,
+        /// The members of the namespace
+        members: Vec<AstDefinition>
+    }
 }
 
 /// Represents an annotation on a top-level definition.

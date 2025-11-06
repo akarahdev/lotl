@@ -16,6 +16,11 @@ impl<'a> TypeGatherer<'a> {
                     returns: returns.clone(),
                 },
             ),
+            AstDefinitionKind::Namespace { members, .. } => {
+                for member in members {
+                    self.infer_header_type(member);
+                }
+            }
         }
     }
 }

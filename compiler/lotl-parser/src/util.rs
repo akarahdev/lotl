@@ -77,4 +77,27 @@ impl Parser {
             }
         }
     }
+
+    pub fn parse_unlimited_series<T, F: Fn(&mut Self) -> T>(
+        &self,
+        stream: TokenStream,
+        func: F,
+    ) -> Vec<T> {
+        let mut parser = Parser::new(stream);
+        let mut collection = Vec::new();
+
+        if parser.peek().kind == TokenKind::EndOfStream {
+            return collection;
+        }
+
+        loop {
+            if parser.peek().kind == TokenKind::EndOfStream {
+                for err in parser.get_errs() {
+                    self.push_err(err);
+                }
+                return collection;
+            }
+            collection.push(func(&mut parser));
+        }
+    }
 }

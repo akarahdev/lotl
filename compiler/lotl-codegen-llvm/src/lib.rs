@@ -24,7 +24,6 @@ mod tests {
     use crate::codegen;
     use lotl_error::file::SourceFile;
     use lotl_lexer::lex;
-    use lotl_llvm_api::IRComponent;
     use lotl_parser::parse;
     use lotl_typechk::infer_program;
 
@@ -58,15 +57,7 @@ mod tests {
              return 40.0 + 60.0;
          }",
         );
-        let ast = lex(source)
-            .bind(parse)
-            .fork(infer_program)
-            .peek(|x| {
-                eprintln!("{:#?}", x);
-            })
-            .map(codegen);
-        eprintln!("{:#?}", ast.diagnostics);
-        eprintln!("{}", ast.output.emit());
+        let ast = lex(source).bind(parse).fork(infer_program).map(codegen);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

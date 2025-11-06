@@ -76,6 +76,7 @@ impl Lexer {
                 "for" => Some(TokenTree::new(TokenKind::ForKeyword, self.create_span())),
                 "while" => Some(TokenTree::new(TokenKind::WhileKeyword, self.create_span())),
                 "return" => Some(TokenTree::new(TokenKind::ReturnKeyword, self.create_span())),
+                "namespace" => Some(TokenTree::new(TokenKind::NamespaceKeyword, self.create_span())),
                 _ => Some(TokenTree::new(TokenKind::Ident(str), self.create_span())),
             };
         }
