@@ -1,9 +1,9 @@
 use crate::ids::{Tag, Tagged};
-use crate::stmt::StatementId;
 use crate::types::AstType;
 use std::string::String;
 use std::vec::Vec;
 use uuid::Uuid;
+use crate::expr::ExprId;
 
 /// Represents the ID of a top-level definition.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
@@ -56,7 +56,7 @@ pub enum AstDefinitionKind {
         /// The return type of the function.
         returns: AstType,
         /// The statements of the function.
-        statements: Option<Vec<StatementId>>,
+        statements: Option<ExprId>,
     },
     /// Represents a namespace
     Namespace {

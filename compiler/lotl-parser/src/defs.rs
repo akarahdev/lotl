@@ -2,6 +2,7 @@ use crate::errors::ExpectedKindFoundKind;
 use crate::expect_kind;
 use crate::parser::Parser;
 use lotl_ast::defs::{AstDefinition, AstDefinitionId, AstDefinitionKind};
+use lotl_ast::expr::AstExpr;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_token::{TokenKind, TokenStream};
 
@@ -115,16 +116,21 @@ impl Parser {
         let return_ty = self.parse_generic_type(generics.as_slice());
 
         let mut statements = None;
+
         if let TokenKind::Braces(block_tokens) = &self.peek().kind {
             self.next();
-            statements = Some(
-                self.parse_delimited_series(
-                    block_tokens.clone(),
-                    TokenKind::Semicolon,
-                    Parser::parse_stmt,
-                )
+            let exprs = self.parse_delimited_series(
+                block_tokens.clone(),
+                TokenKind::Semicolon,
+                Parser::parse_expr,
+            )
                 .into_iter()
-                .collect(),
+                .collect();
+            statements = Some(
+                self.exprs.register(|id| AstExpr::Block {
+                    exprs,
+                    id
+                }),
             )
         }
         let output = self.definitions.register_with(&name, |id| AstDefinition {

@@ -5,7 +5,6 @@ use std::sync::Arc;
 use lotl_ast::defs::AstDefinition;
 use lotl_ast::expr::AstExpr;
 use lotl_ast::graph::IdGraph;
-use lotl_ast::stmt::AstStatement;
 
 pub struct Parser {
     pub(crate) vec: Arc<Vec<TokenTree>>,
@@ -13,7 +12,6 @@ pub struct Parser {
     pub(crate) index: Cell<usize>,
 
     pub(crate) definitions: IdGraph<AstDefinition>,
-    pub(crate) stmts: IdGraph<AstStatement>,
     pub(crate) exprs: IdGraph<AstExpr>
 }
 
@@ -25,7 +23,6 @@ impl Parser {
             index: Cell::new(0),
 
             definitions: IdGraph::new(),
-            stmts: IdGraph::new(),
             exprs: IdGraph::new()
         }
     }

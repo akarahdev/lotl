@@ -6,9 +6,87 @@ use lotl_token::TokenKind;
 
 impl Parser {
     pub fn parse_expr(&mut self) -> ExprId {
-        self.parse_term()
+        self.parse_flow()
     }
 
+    pub fn parse_flow(&mut self) -> ExprId {
+        match &self.peek().kind {
+            TokenKind::Braces(block_tokens) => {
+                self.next();
+                let exprs = self
+                    .parse_delimited_series(
+                        block_tokens.clone(),
+                        TokenKind::Semicolon,
+                        Parser::parse_expr,
+                    )
+                    .into_iter()
+                    .collect();
+                self.exprs.register(|id| AstExpr::Block { exprs, id })
+            }
+            TokenKind::ReturnKeyword => {
+                self.next();
+                let expr = self.parse_expr();
+                self.exprs.register(|id| AstExpr::Returns { expr, id })
+            }
+            TokenKind::IfKeyword => {
+                self.next();
+                let cond = self.parse_expr();
+                let if_true = self.parse_expr();
+                let otherwise = self.exprs.register(|id| AstExpr::Block { exprs: Vec::new(), id });
+                self.exprs.register(|id| AstExpr::If {
+                    cond,
+                    if_true,
+                    otherwise,
+                    id,
+                })
+            }
+            TokenKind::ForKeyword => {
+                self.next();
+                let index_var = self.parse_ident();
+                if let TokenKind::Colon = &self.peek().kind {
+                    self.next();
+                } else {
+                    self.push_err(Diagnostic::new(
+                        ExpectedKindFoundKind {
+                            expected: &[TokenKind::Colon],
+                            found: self.peek().kind.clone(),
+                        },
+                        self.peek().location.clone(),
+                    ));
+                }
+                let iterable = self.parse_expr();
+                let mut body = self.parse_expr();
+                
+                self.exprs.register(|id| AstExpr::For {
+                    index_var,
+                    iterable,
+                    body,
+                    id,
+                })
+            }
+            TokenKind::WhileKeyword => {
+                self.next();
+                let cond = self.parse_expr();
+                let mut body = self.parse_expr();
+                self.exprs.register(|id| AstExpr::While { cond, body, id })
+            }
+            _ => {
+                let expr = self.parse_term();
+                if self.peek().kind == TokenKind::Equal {
+                    self.next();
+                    let value = self.parse_expr();
+                    self.exprs.register(|id| AstExpr::Storage {
+                        ptr: expr,
+                        type_hint: None,
+                        value,
+                        id,
+                    })
+                } else {
+                    expr
+                }
+            }
+        }
+    }
     pub fn parse_term(&mut self) -> ExprId {
         let mut lhs = self.parse_factor();
         loop {

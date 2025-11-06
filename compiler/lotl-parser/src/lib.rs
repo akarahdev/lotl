@@ -5,14 +5,12 @@ mod defs;
 mod errors;
 mod expr;
 mod parser;
-mod stmt;
 mod util;
 
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
 use lotl_ast::expr::AstExpr;
 use lotl_ast::graph::IdGraph;
-use lotl_ast::stmt::AstStatement;
 use lotl_error::results::Results;
 use lotl_token::{TokenKind, TokenStream};
 
@@ -24,12 +22,11 @@ pub fn parse(stream: TokenStream) -> Results<ParseResults> {
             let errs = parser.get_errs();
             let results = ParseResults {
                 definitions: parser.definitions,
-                stmts: parser.stmts,
                 exprs: parser.exprs,
             };
             return Results::new(results, errs);
         }
-        while let Some(..) = parser.parse_header() {}
+        while parser.parse_header().is_some() {}
     }
 }
 
@@ -38,8 +35,6 @@ pub fn parse(stream: TokenStream) -> Results<ParseResults> {
 pub struct ParseResults {
     /// Contains the top-level headers
     pub definitions: IdGraph<AstDefinition>,
-    /// Contains the statements in each block
-    pub stmts: IdGraph<AstStatement>,
     /// Contains each expression in each statement
     pub exprs: IdGraph<AstExpr>,
 }
@@ -151,7 +146,11 @@ mod tests {
     fn while_function() {
         let source = SourceFile::new(
             "example.lotl",
-            "func main() -> i32 { while true { std::io::println(0); }; }",
+            "func main() -> i32 { \
+                while true { \
+                    std::io::println(0); \
+                }; \
+            }",
         );
         let ast = lex(source).bind(parse);
         assert_eq!(ast.diagnostics.len(), 0);
@@ -164,7 +163,6 @@ mod tests {
             "func main() -> i32 { x = 10; y = 20; z = x + y; }",
         );
         let ast = lex(source).bind(parse);
-        eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }

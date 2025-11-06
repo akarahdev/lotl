@@ -1,6 +1,7 @@
 use crate::ids::{Tag, Tagged};
 use lotl_error::span::Span;
 use uuid::Uuid;
+use crate::types::AstType;
 
 /// Represents the ID of an AST expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -17,6 +18,62 @@ impl Tag for ExprId {
 /// Represents an expression in the AST.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstExpr {
+    /// Represents a block of expressions
+    Block {
+        /// The list of expressions to execute
+        exprs: Vec<ExprId>,
+        /// The ID of the expression
+        id: ExprId,
+    },
+    /// A statement with branching conditions
+    If {
+        /// The condition to follow
+        cond: ExprId,
+        /// Code to run if true
+        if_true: ExprId,
+        /// Code to run if false
+        otherwise: ExprId,
+        /// ID of the statement
+        id: ExprId,
+    },
+    /// Represents a for-loop, iterating over a list.
+    For {
+        /// The variable to hold the iteration value
+        index_var: String,
+        /// The value to iterate over
+        iterable: ExprId,
+        /// The body of the loop
+        body: ExprId,
+        /// ID of the statement
+        id: ExprId,
+    },
+    /// Represents a while-loop, iterating over a condition.
+    While {
+        /// The condition to follow
+        cond: ExprId,
+        /// The body of the loop
+        body: ExprId,
+        /// ID of the statement
+        id: ExprId,
+    },
+    /// A statement of storing data in a pointer
+    Storage {
+        /// The pointer to store into
+        ptr: ExprId,
+        /// An optional type hint, if the variable is new
+        type_hint: Option<AstType>,
+        /// The value to write into the pointer
+        value: ExprId,
+        /// ID of the statement
+        id: ExprId,
+    },
+    /// Returns the value from the function
+    Returns {
+        /// The expression to return
+        expr: ExprId,
+        /// ID of the statement
+        id: ExprId,
+    },
     /// An identifier
     Identifier {
         /// The name of the identifier
@@ -110,6 +167,12 @@ impl Tagged for AstExpr {
             AstExpr::FieldAccess { id, .. } => id,
             AstExpr::NamespaceAccess { id, .. } => id,
             AstExpr::Subscript { id, .. } => id,
+            AstExpr::Block { id, .. } => id,
+            AstExpr::If { id, .. } => id,
+            AstExpr::For { id, .. } => id,
+            AstExpr::While { id, .. } => id,
+            AstExpr::Storage { id, .. } => id,
+            AstExpr::Returns { id, .. } => id,
         }
     }
 }

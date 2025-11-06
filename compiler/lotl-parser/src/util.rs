@@ -62,7 +62,6 @@ impl Parser {
                 for err in parser.get_errs() {
                     self.push_err(err);
                 }
-                self.stmts.extend(parser.stmts.into_values());
                 self.definitions.extend(parser.definitions.into_values());
                 self.exprs.extend(parser.exprs.into_values());
                 return collection;
@@ -98,7 +97,6 @@ impl Parser {
                 for err in parser.get_errs() {
                     self.push_err(err);
                 }
-                self.stmts.extend(parser.stmts.into_values());
                 self.definitions.extend(parser.definitions.into_values());
                 self.exprs.extend(parser.exprs.into_values());
                 return collection;

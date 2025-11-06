@@ -13,7 +13,5 @@ pub mod expr;
 pub mod graph;
 /// Contains generic code for AST IDs across the codebase
 pub mod ids;
-/// Represents the statements a code block can have
-pub mod stmt;
 /// Defines the type system of the AST
 pub mod types;
