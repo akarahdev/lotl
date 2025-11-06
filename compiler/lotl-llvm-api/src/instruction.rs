@@ -74,7 +74,6 @@ impl SharedBasicBlock {
     pub fn create_child<F: FnOnce(SharedBasicBlock)>(&self, f: F) -> String {
         let bb = BasicBlock::child(self);
         f(bb.clone());
-        let label = bb.unlock_out(|x| x.label.clone()).clone();
-        label
+        bb.unlock_out(|x| x.label.clone()).clone()
     }
 }

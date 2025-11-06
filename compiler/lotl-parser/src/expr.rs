@@ -55,7 +55,7 @@ impl Parser {
                     ));
                 }
                 let iterable = self.parse_expr();
-                let mut body = self.parse_expr();
+                let body = self.parse_expr();
                 
                 self.exprs.register(|id| AstExpr::For {
                     index_var,
@@ -67,7 +67,7 @@ impl Parser {
             TokenKind::WhileKeyword => {
                 self.next();
                 let cond = self.parse_expr();
-                let mut body = self.parse_expr();
+                let body = self.parse_expr();
                 self.exprs.register(|id| AstExpr::While { cond, body, id })
             }
             _ => {
