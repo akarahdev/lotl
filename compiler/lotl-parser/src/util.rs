@@ -45,7 +45,7 @@ impl Parser {
     }
 
     pub fn parse_delimited_series<T, F: Fn(&mut Self) -> T>(
-        &self,
+        &mut self,
         stream: TokenStream,
         delimiter: TokenKind,
         func: F,
@@ -62,6 +62,9 @@ impl Parser {
                 for err in parser.get_errs() {
                     self.push_err(err);
                 }
+                self.stmts.extend(parser.stmts.into_values());
+                self.definitions.extend(parser.definitions.into_values());
+                self.exprs.extend(parser.exprs.into_values());
                 return collection;
             }
             collection.push(func(&mut parser));
@@ -79,7 +82,7 @@ impl Parser {
     }
 
     pub fn parse_unlimited_series<T, F: Fn(&mut Self) -> T>(
-        &self,
+        &mut self,
         stream: TokenStream,
         func: F,
     ) -> Vec<T> {
@@ -95,6 +98,9 @@ impl Parser {
                 for err in parser.get_errs() {
                     self.push_err(err);
                 }
+                self.stmts.extend(parser.stmts.into_values());
+                self.definitions.extend(parser.definitions.into_values());
+                self.exprs.extend(parser.exprs.into_values());
                 return collection;
             }
             collection.push(func(&mut parser));

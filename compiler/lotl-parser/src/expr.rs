@@ -1,74 +1,77 @@
 use crate::errors::ExpectedKindFoundKind;
 use crate::parser::Parser;
 use lotl_ast::expr::{AstExpr, BinaryOperationKind, ExprId};
-use lotl_ast::ids::PureTag;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_token::TokenKind;
 
 impl Parser {
-    pub fn parse_expr(&mut self) -> AstExpr {
+    pub fn parse_expr(&mut self) -> ExprId {
         self.parse_term()
     }
 
-    pub fn parse_term(&mut self) -> AstExpr {
-        let mut base = self.parse_factor();
+    pub fn parse_term(&mut self) -> ExprId {
+        let mut lhs = self.parse_factor();
         loop {
             if self.peek().kind == TokenKind::Plus {
                 let op_span = self.next().location.clone();
-                base = AstExpr::BinaryOperation {
+                let rhs = self.parse_factor();
+                lhs = self.exprs.register(|id| AstExpr::BinaryOperation {
                     op: BinaryOperationKind::Add,
-                    lhs: Box::new(base),
-                    rhs: Box::new(self.parse_factor()),
+                    lhs,
+                    rhs,
                     op_span,
-                    id: ExprId::make_new(),
-                };
+                    id,
+                });
             } else if self.peek().kind == TokenKind::Minus {
                 let op_span = self.next().location.clone();
-                base = AstExpr::BinaryOperation {
+                let rhs = self.parse_factor();
+                lhs = self.exprs.register(|id| AstExpr::BinaryOperation {
                     op: BinaryOperationKind::Subtract,
-                    lhs: Box::new(base),
-                    rhs: Box::new(self.parse_factor()),
+                    lhs,
+                    rhs,
                     op_span,
-                    id: ExprId::make_new(),
-                }
+                    id,
+                });
             } else {
                 break;
             }
         }
-        base
+        lhs
     }
 
-    pub fn parse_factor(&mut self) -> AstExpr {
-        let mut base = self.parse_applications();
+    pub fn parse_factor(&mut self) -> ExprId {
+        let mut lhs = self.parse_applications();
 
         loop {
             if self.peek().kind == TokenKind::Star {
                 let op_span = self.next().location.clone();
-                base = AstExpr::BinaryOperation {
+                let rhs = self.parse_applications();
+                lhs = self.exprs.register(|id| AstExpr::BinaryOperation {
                     op: BinaryOperationKind::Multiply,
-                    lhs: Box::new(base),
-                    rhs: Box::new(self.parse_applications()),
+                    lhs,
+                    rhs,
                     op_span,
-                    id: ExprId::make_new(),
-                };
+                    id,
+                });
             } else if self.peek().kind == TokenKind::Slash {
                 let op_span = self.next().location.clone();
-                base = AstExpr::BinaryOperation {
+                let rhs = self.parse_applications();
+                lhs = self.exprs.register(|id| AstExpr::BinaryOperation {
                     op: BinaryOperationKind::Divide,
-                    lhs: Box::new(base),
-                    rhs: Box::new(self.parse_applications()),
+                    lhs,
+                    rhs,
                     op_span,
-                    id: ExprId::make_new(),
-                }
+                    id,
+                });
             } else {
                 break;
             }
         }
-        base
+        lhs
     }
 
-    pub fn parse_applications(&mut self) -> AstExpr {
-        let mut base = self.parse_base_expr();
+    pub fn parse_applications(&mut self) -> ExprId {
+        let mut obj = self.parse_base_expr();
 
         loop {
             let lookahead = self.peek().clone();
@@ -79,27 +82,25 @@ impl Parser {
                     TokenKind::Comma,
                     Parser::parse_expr,
                 );
-                base = AstExpr::Invocation {
-                    func: Box::new(base),
+                obj = self.exprs.register(|id| AstExpr::Invocation {
+                    obj,
                     parameters,
-                    id: ExprId::make_new(),
-                }
+                    id,
+                })
             } else if let TokenKind::Brackets(stream) = &lookahead.kind {
                 let index = self.parse_single_stream(stream.clone(), Parser::parse_expr);
                 self.next();
-                base = AstExpr::Subscript {
-                    obj: Box::new(base),
-                    index: Box::new(index),
-                    id: ExprId::make_new(),
-                }
+                obj = self
+                    .exprs
+                    .register(|id| AstExpr::Subscript { obj, index, id })
             } else if let TokenKind::Dot = lookahead.kind.clone() {
                 self.next();
                 let ident = self.parse_ident();
-                base = AstExpr::FieldAccess {
-                    obj: Box::new(base),
+                obj = self.exprs.register(|id| AstExpr::FieldAccess {
+                    obj,
                     field: ident,
-                    id: ExprId::make_new(),
-                }
+                    id,
+                })
             } else if let TokenKind::Colon = lookahead.kind.clone() {
                 self.next();
                 let next_colon = self.peek();
@@ -116,16 +117,16 @@ impl Parser {
                 }
 
                 let ident = self.parse_ident();
-                base = AstExpr::NamespaceAccess {
-                    obj: Box::new(base),
+                obj = self.exprs.register(|id| AstExpr::NamespaceAccess {
+                    obj,
                     path: ident,
-                    id: ExprId::make_new(),
-                }
+                    id,
+                })
             } else {
                 break;
             }
         }
-        base
+        obj
     }
 
     pub fn parse_ident(&mut self) -> String {
@@ -149,30 +150,27 @@ impl Parser {
         }
     }
 
-    pub fn parse_base_expr(&mut self) -> AstExpr {
+    pub fn parse_base_expr(&mut self) -> ExprId {
         let token = self.peek();
         match &token.kind {
             TokenKind::Numeric(num) => {
                 let span = self.next().location.clone();
-                AstExpr::Numeric {
-                    number: num.clone(),
-                    span,
-                    id: ExprId::make_new(),
-                }
+                let number = num.clone();
+                self.exprs
+                    .register(|id| AstExpr::Numeric { number, span, id })
             }
             TokenKind::Ident(name) => {
                 let span = self.next().location.clone();
-                AstExpr::Identifier {
-                    name: name.clone(),
-                    span,
-                    id: ExprId::make_new(),
-                }
+                let name = name.clone();
+                self.exprs
+                    .register(|id| AstExpr::Identifier { name, span, id })
             }
             TokenKind::Parenthesis(inner) => {
                 self.next();
                 self.parse_single_stream(inner.clone(), Parser::parse_expr)
             }
             found => {
+                let span = token.location.clone();
                 self.push_err(Diagnostic::new(
                     ExpectedKindFoundKind {
                         expected: &[
@@ -183,11 +181,11 @@ impl Parser {
                     },
                     token.location.clone(),
                 ));
-                AstExpr::Numeric {
+                self.exprs.register(|id| AstExpr::Numeric {
                     number: "".to_string(),
-                    span: token.location.clone(),
-                    id: ExprId::make_new(),
-                }
+                    span,
+                    id,
+                })
             }
         }
     }

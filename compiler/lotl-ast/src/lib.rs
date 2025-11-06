@@ -9,6 +9,8 @@
 pub mod defs;
 /// Defines the expressions of a top-level definition
 pub mod expr;
+/// Defines the ID graph structure that holds nodes and their IDs.
+pub mod graph;
 /// Contains generic code for AST IDs across the codebase
 pub mod ids;
 /// Represents the statements a code block can have

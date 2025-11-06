@@ -1,5 +1,5 @@
-use crate::ids::Tag;
-use crate::stmt::AstStatement;
+use crate::ids::{Tag, Tagged};
+use crate::stmt::StatementId;
 use crate::types::AstType;
 use std::string::String;
 use std::vec::Vec;
@@ -18,7 +18,7 @@ impl Tag for AstDefinitionId {
         fn str_to_hash(s: &str) -> u128 {
             s.chars().fold(0, |hash, ch| 31 * hash + ch as u128)
         }
-        
+
         AstDefinitionId(Uuid::from_u128(str_to_hash(input)))
     }
 }
@@ -36,13 +36,19 @@ pub struct AstDefinition {
     pub id: AstDefinitionId,
 }
 
+impl Tagged for AstDefinition {
+    type TagType = AstDefinitionId;
+
+    fn id(&self) -> &Self::TagType {
+        &self.id
+    }
+}
+
 /// Represents the type of top level definition.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstDefinitionKind {
     /// Represents a function definition.
     Function {
-        /// The name of the function.
-        name: String,
         /// The parameters that the function accepts.
         parameters: Vec<AstType>,
         /// The generic names of the function.
@@ -50,15 +56,13 @@ pub enum AstDefinitionKind {
         /// The return type of the function.
         returns: AstType,
         /// The statements of the function.
-        statements: Option<Vec<AstStatement>>,
+        statements: Option<Vec<StatementId>>,
     },
     /// Represents a namespace
     Namespace {
-        /// The name of the namespace
-        name: String,
         /// The members of the namespace
-        members: Vec<AstDefinition>
-    }
+        members: Vec<AstDefinitionId>,
+    },
 }
 
 /// Represents an annotation on a top-level definition.

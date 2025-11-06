@@ -2,11 +2,19 @@ use lotl_error::diagnostic::Diagnostic;
 use lotl_token::{TokenKind, TokenStream, TokenTree};
 use std::cell::{Cell, RefCell};
 use std::sync::Arc;
+use lotl_ast::defs::AstDefinition;
+use lotl_ast::expr::AstExpr;
+use lotl_ast::graph::IdGraph;
+use lotl_ast::stmt::AstStatement;
 
 pub struct Parser {
     pub(crate) vec: Arc<Vec<TokenTree>>,
     pub(crate) errors: RefCell<Vec<Diagnostic>>,
     pub(crate) index: Cell<usize>,
+
+    pub(crate) definitions: IdGraph<AstDefinition>,
+    pub(crate) stmts: IdGraph<AstStatement>,
+    pub(crate) exprs: IdGraph<AstExpr>
 }
 
 impl Parser {
@@ -15,6 +23,10 @@ impl Parser {
             vec: stream.into_inner(),
             errors: RefCell::new(Vec::new()),
             index: Cell::new(0),
+
+            definitions: IdGraph::new(),
+            stmts: IdGraph::new(),
+            exprs: IdGraph::new()
         }
     }
 

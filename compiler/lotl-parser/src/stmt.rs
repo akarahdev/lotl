@@ -1,18 +1,14 @@
 use crate::parser::Parser;
-use lotl_ast::ids::PureTag;
 use lotl_ast::stmt::{AstStatement, StatementId};
 use lotl_token::TokenKind;
 
 impl Parser {
-    pub fn parse_stmt(&mut self) -> AstStatement {
+    pub fn parse_stmt(&mut self) -> StatementId {
         match &self.peek().kind {
             TokenKind::ReturnKeyword => {
                 self.next();
                 let expr = self.parse_expr();
-                AstStatement::Returns {
-                    expr,
-                    id: StatementId::make_new(),
-                }
+                self.stmts.register(|id| AstStatement::Returns { expr, id })
             }
             TokenKind::IfKeyword => {
                 self.next();
@@ -31,17 +27,17 @@ impl Parser {
                         .collect();
                 }
 
-                AstStatement::If {
+                self.stmts.register(|id| AstStatement::If {
                     cond,
                     if_true,
                     otherwise: vec![],
-                    id: StatementId::make_new(),
-                }
+                    id,
+                })
             }
-            _ => AstStatement::Drop {
-                expr: self.parse_expr(),
-                id: StatementId::make_new(),
-            },
+            _ => {
+                let expr = self.parse_expr();
+                self.stmts.register(|id| AstStatement::Drop { expr, id })
+            }
         }
     }
 }

@@ -40,9 +40,9 @@ pub enum AstExpr {
         /// The binary operator to use
         op: BinaryOperationKind,
         /// The left-hand side of the operation
-        lhs: Box<AstExpr>,
+        lhs: ExprId,
         /// The right-hand side of the operation
-        rhs: Box<AstExpr>,
+        rhs: ExprId,
         /// The span of the operator
         op_span: Span,
         /// The ID of the expression
@@ -53,7 +53,7 @@ pub enum AstExpr {
         /// The unary operation to use
         op: UnaryOperationKind,
         /// The expression to apply the operation to
-        expr: Box<AstExpr>,
+        expr: ExprId,
         /// The span of the operator
         op_span: Span,
         /// The ID of the expression
@@ -62,16 +62,16 @@ pub enum AstExpr {
     /// Represents a function invocations
     Invocation {
         /// The function to invoke
-        func: Box<AstExpr>,
+        obj: ExprId,
         /// The parameters to invoke the function with
-        parameters: Vec<AstExpr>,
+        parameters: Vec<ExprId>,
         /// The ID of the expression
         id: ExprId,
     },
     /// Represents a field access
     FieldAccess {
         /// The object to access the field of
-        obj: Box<AstExpr>,
+        obj: ExprId,
         /// The field to access
         field: String,
         /// The ID of the expression
@@ -80,7 +80,7 @@ pub enum AstExpr {
     /// Represents a namespace access
     NamespaceAccess {
         /// The namespace to access the field of
-        obj: Box<AstExpr>,
+        obj: ExprId,
         /// The path to access
         path: String,
         /// The ID of the expression
@@ -89,15 +89,17 @@ pub enum AstExpr {
     /// Represents a subscript
     Subscript {
         /// The object to access the index of
-        obj: Box<AstExpr>,
+        obj: ExprId,
         /// The value to index
-        index: Box<AstExpr>,
+        index: ExprId,
         /// The ID of the expression
         id: ExprId,
     },
 }
 
-impl Tagged<ExprId> for AstExpr {
+impl Tagged for AstExpr {
+    type TagType = ExprId;
+
     fn id(&self) -> &ExprId {
         match self {
             AstExpr::Identifier { id, .. } => id,

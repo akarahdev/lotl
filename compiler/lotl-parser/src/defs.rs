@@ -2,12 +2,11 @@ use crate::errors::ExpectedKindFoundKind;
 use crate::expect_kind;
 use crate::parser::Parser;
 use lotl_ast::defs::{AstDefinition, AstDefinitionId, AstDefinitionKind};
-use lotl_ast::ids::Tag;
 use lotl_error::diagnostic::Diagnostic;
 use lotl_token::{TokenKind, TokenStream};
 
 impl Parser {
-    pub fn parse_header(&mut self) -> Option<AstDefinition> {
+    pub fn parse_header(&mut self) -> Option<AstDefinitionId> {
         let kw_tok = self.peek();
         match &kw_tok.kind {
             TokenKind::EndOfStream => None,
@@ -27,7 +26,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_namespace(&mut self) -> Option<AstDefinition> {
+    pub fn parse_namespace(&mut self) -> Option<AstDefinitionId> {
         let _kw_tok = self.next();
         let name_tok = self.next();
 
@@ -49,20 +48,21 @@ impl Parser {
 
             let parts = self.parse_unlimited_series(block_tokens.clone(), Parser::parse_header);
 
-            return Some(AstDefinition {
-                id: AstDefinitionId::make_new_from(&name),
+            let output = self.definitions.register_with(&name, |id| AstDefinition {
+                id,
                 name: name.clone(),
                 kind: AstDefinitionKind::Namespace {
-                    name,
                     members: parts.iter().flatten().cloned().collect(),
                 },
                 annotations: vec![],
             });
+
+            return Some(output);
         }
         None
     }
 
-    pub fn parse_function(&mut self) -> Option<AstDefinition> {
+    pub fn parse_function(&mut self) -> Option<AstDefinitionId> {
         let _kw_tok = self.next();
         let name_tok = self.next();
 
@@ -127,18 +127,18 @@ impl Parser {
                 .collect(),
             )
         }
-        Some(AstDefinition {
+        let output = self.definitions.register_with(&name, |id| AstDefinition {
             name: name.clone(),
-            id: AstDefinitionId::make_new_from(&name),
+            id,
             kind: AstDefinitionKind::Function {
-                name,
                 parameters: vec![],
                 generics,
                 returns: return_ty,
                 statements,
             },
             annotations: vec![],
-        })
+        });
+        Some(output)
     }
 
     pub fn parse_generic_param(&mut self) -> String {

@@ -1,10 +1,10 @@
-use crate::expr::AstExpr;
+use crate::expr::ExprId;
 use crate::ids::{Tag, Tagged};
 use crate::types::AstType;
 use uuid::Uuid;
 
 /// Represents the ID of a statement in the AST.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct StatementId(pub Uuid);
 
 impl Tag for StatementId {
@@ -21,48 +21,49 @@ pub enum AstStatement {
     /// A statement with branching conditions
     If {
         /// The condition to follow
-        cond: AstExpr,
+        cond: ExprId,
         /// Code to run if true
-        if_true: Vec<AstStatement>,
+        if_true: Vec<StatementId>,
         /// Code to run if false
-        otherwise: Vec<AstStatement>,
+        otherwise: Vec<StatementId>,
         /// ID of the statement
-        id: StatementId
+        id: StatementId,
     },
     /// A statement of storing data in a pointer
     Storage {
         /// The pointer to store into
-        ptr: AstExpr,
+        ptr: ExprId,
         /// An optional type hint, if the variable is new
         type_hint: Option<AstType>,
         /// The value to write into the pointer
-        value: AstExpr,
+        value: ExprId,
         /// ID of the statement
         id: StatementId,
     },
     /// Evaluates the expression and immediately drops the result.
     Drop {
         /// The expression to evaluate
-        expr: AstExpr,
+        expr: ExprId,
         /// ID of the statement
         id: StatementId,
     },
     /// Returns the value from the function
     Returns {
         /// The expression to return
-        expr: AstExpr,
+        expr: ExprId,
         /// ID of the statement
-        id: StatementId
-    }
+        id: StatementId,
+    },
 }
 
-impl Tagged<StatementId> for AstStatement {
+impl Tagged for AstStatement {
+    type TagType = StatementId;
     fn id(&self) -> &StatementId {
         match self {
             AstStatement::Storage { id, .. } => id,
             AstStatement::Drop { id, .. } => id,
             AstStatement::Returns { id, .. } => id,
-            AstStatement::If { id, .. } => id
+            AstStatement::If { id, .. } => id,
         }
     }
 }

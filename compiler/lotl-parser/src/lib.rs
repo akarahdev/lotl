@@ -10,21 +10,38 @@ mod util;
 
 use crate::parser::Parser;
 use lotl_ast::defs::AstDefinition;
+use lotl_ast::expr::AstExpr;
+use lotl_ast::graph::IdGraph;
+use lotl_ast::stmt::AstStatement;
 use lotl_error::results::Results;
 use lotl_token::{TokenKind, TokenStream};
 
 /// Parses a TokenStream into a series of AstDefinitions.
-pub fn parse(stream: TokenStream) -> Results<Vec<AstDefinition>> {
+pub fn parse(stream: TokenStream) -> Results<ParseResults> {
     let mut parser = Parser::new(stream);
-    let mut defs = Vec::new();
     loop {
         if parser.peek().kind == TokenKind::EndOfStream {
-            return Results::new(defs, parser.get_errs());
+            let errs = parser.get_errs();
+            let results = ParseResults {
+                definitions: parser.definitions,
+                stmts: parser.stmts,
+                exprs: parser.exprs,
+            };
+            return Results::new(results, errs);
         }
-        if let Some(def) = parser.parse_header() {
-            defs.push(def);
-        };
+        while let Some(..) = parser.parse_header() {}
     }
+}
+
+/// Represents all nodes obtained from parsing a token stream.
+#[derive(Debug)]
+pub struct ParseResults {
+    /// Contains the top-level headers
+    pub definitions: IdGraph<AstDefinition>,
+    /// Contains the statements in each block
+    pub stmts: IdGraph<AstStatement>,
+    /// Contains each expression in each statement
+    pub exprs: IdGraph<AstExpr>,
 }
 
 #[cfg(test)]
@@ -106,6 +123,7 @@ mod tests {
             "func main() -> i32 { std::io::println(x); x[10].y[14](abc); }",
         );
         let ast = lex(source).bind(parse);
+        eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }
 }
