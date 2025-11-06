@@ -25,6 +25,14 @@ pub enum Type {
     /// Represents a function that can be called.
     #[non_exhaustive]
     Function(Box<Type>, Vec<Box<Type>>),
+    /// Represents a basic 16-bit floating point.
+    Half,
+    /// A 32-bit floating point.
+    Float,
+    /// A 64-bit floating point.
+    Double,
+    /// A 128-bit floating point.
+    FP128,
 }
 
 impl IRComponent for Type {
@@ -72,6 +80,10 @@ impl IRComponent for Type {
                 );
                 string.push('}');
             }
+            Type::Half => string.push_str("half"),
+            Type::Float => string.push_str("float"),
+            Type::Double => string.push_str("double"),
+            Type::FP128 => string.push_str("fp128"),
         }
     }
 }
@@ -97,6 +109,26 @@ impl Types {
     /// Generates a new void type, with no size or value.
     pub fn void() -> Type {
         Type::Void
+    }
+
+    /// Generates a new 16-bit floating point.
+    pub fn fp16() -> Type {
+        Type::Half
+    }
+
+    /// Generates a new 32-bit floating point.
+    pub fn fp32() -> Type {
+        Type::Float
+    }
+
+    /// Generates a new 64-bit floating point.
+    pub fn fp64() -> Type {
+        Type::Double
+    }
+
+    /// Generates a new 128-bit floating point.
+    pub fn fp128() -> Type {
+        Type::FP128
     }
 }
 

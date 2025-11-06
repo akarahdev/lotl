@@ -31,13 +31,7 @@ mod tests {
     #[test]
     pub fn simple_return() {
         let source = SourceFile::new("example.lotl", "func start() -> i64 { return 10 + 20; }");
-        let ast = lex(source)
-            .bind(parse)
-            .fork(infer_program)
-            .peek(|x| {
-                eprintln!("{:#?}", x);
-            })
-            .map(codegen);
+        let ast = lex(source).bind(parse).fork(infer_program).map(codegen);
         assert_eq!(ast.diagnostics.len(), 0);
     }
 
@@ -50,6 +44,18 @@ mod tests {
                 return 20;
              };
              return 40;\
+         }",
+        );
+        let ast = lex(source).bind(parse).fork(infer_program).map(codegen);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    pub fn floating() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func start() -> f64 { \
+             return 40.0 + 60.0;
          }",
         );
         let ast = lex(source)

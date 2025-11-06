@@ -81,7 +81,7 @@ impl Lexer {
         }
         if self.peek().is_ascii_digit() {
             let mut str = String::new();
-            while self.peek().is_ascii_digit() {
+            while self.peek().is_ascii_digit() || self.peek() == '.' {
                 str.push(self.next());
             }
             return Some(TokenTree::new(TokenKind::Numeric(str), self.create_span()));

@@ -92,7 +92,7 @@ mod tests {
     pub fn generate_simple_global_variable() {
         let var = GlobalVariable::new("foo", Types::integer(32))
             .with_linkage(LinkageType::Internal)
-            .with_value(Value::Integer("1240".to_string(), Types::integer(32)));
+            .with_value(Value::Number("1240".to_string(), Types::integer(32)));
         assert_eq!(var.emit(), "@foo = internal global i32 1240");
     }
 }

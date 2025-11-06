@@ -7,9 +7,9 @@ use std::vec::Vec;
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Value {
-    /// Represents a constant integer value. The value is of integer type.
+    /// Represents a constant numeric value. The value is of either integer or floating-point type.
     #[non_exhaustive]
-    Integer(String, Type),
+    Number(String, Type),
     /// Represents an LLVM zero-initializer.
     #[non_exhaustive]
     ZeroInitializer(Type),
@@ -28,7 +28,7 @@ impl Value {
     /// Returns the type associated with this value.
     pub fn ty(&self) -> &Type {
         match self {
-            Value::Integer(_, ty) => ty,
+            Value::Number(_, ty) => ty,
             Value::GlobalIdentifier(_, ty) => ty,
             Value::LocalIdentifier(_, ty) => ty,
             Value::Structure(_, ty) => ty,
@@ -51,7 +51,17 @@ impl Values {
                 panic!("invalid character in integer: '{}'", contents);
             }
         }
-        Value::Integer(contents.parse().unwrap(), Types::integer(size))
+        Value::Number(contents.parse().unwrap(), Types::integer(size))
+    }
+
+    /// Generates a new floating-point constant, with the specified type.
+    pub fn float(contents: &str, ty: Type) -> Value {
+        for (idx, ch) in contents.chars().enumerate() {
+            if !(ch.is_ascii_digit() || (ch == '-' && idx == 0) || (ch == '.')) {
+                panic!("invalid character in floating-point: '{}'", contents);
+            }
+        }
+        Value::Number(contents.parse().unwrap(), ty)
     }
 
     /// Creates a new constant structure value, with the provided values as elements
@@ -79,7 +89,7 @@ impl IRComponent for Value {
 impl Value {
     pub(crate) fn append_to_string_untyped(&self, string: &mut String) {
         match self {
-            Value::Integer(value, _) => {
+            Value::Number(value, _) => {
                 string.push_str(value);
             }
             Value::GlobalIdentifier(name, _) => {
@@ -132,9 +142,7 @@ mod tests {
     }
     #[test]
     pub fn test_structure_constants() {
-        let value = Values::structure(vec![
-            Values::integer("1256", 32),
-        ]);
+        let value = Values::structure(vec![Values::integer("1256", 32)]);
         assert_eq!(value.emit(), "{i32} {i32 1256}");
     }
 }

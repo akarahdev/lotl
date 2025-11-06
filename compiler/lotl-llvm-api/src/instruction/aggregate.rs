@@ -153,7 +153,7 @@ impl SharedBasicBlock {
                     param_ty = *param.clone();
                 }
                 Type::Structure(params) => {
-                    let Value::Integer(length, _) = index.clone() else {
+                    let Value::Number(length, _) = index.clone() else {
                         panic!("getelementptr index for a structure must be an integer");
                     };
                     param_ty = params
