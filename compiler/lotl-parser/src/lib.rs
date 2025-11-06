@@ -154,6 +154,16 @@ mod tests {
             "func main() -> i32 { while true { std::io::println(0); }; }",
         );
         let ast = lex(source).bind(parse);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn storing_function() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { x = 10; y = 20; z = x + y; }",
+        );
+        let ast = lex(source).bind(parse);
         eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }

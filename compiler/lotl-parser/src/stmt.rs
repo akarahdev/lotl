@@ -86,7 +86,18 @@ impl Parser {
             }
             _ => {
                 let expr = self.parse_expr();
-                self.stmts.register(|id| AstStatement::Drop { expr, id })
+                if self.peek().kind == TokenKind::Equal {
+                    self.next();
+                    let value = self.parse_expr();
+                    self.stmts.register(|id| AstStatement::Storage {
+                        ptr: expr,
+                        type_hint: None,
+                        value,
+                        id,
+                    })
+                } else {
+                    self.stmts.register(|id| AstStatement::Drop { expr, id })
+                }
             }
         }
     }
