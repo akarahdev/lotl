@@ -29,6 +29,26 @@ pub enum AstStatement {
         /// ID of the statement
         id: StatementId,
     },
+    /// Represents a for-loop, iterating over a list.
+    For {
+        /// The variable to hold the iteration value
+        index_var: String,
+        /// The value to iterate over
+        iterable: ExprId,
+        /// The body of the loop
+        body: Vec<StatementId>,
+        /// ID of the statement
+        id: StatementId,
+    },
+    /// Represents a while-loop, iterating over a condition.
+    While {
+        /// The condition to follow
+        cond: ExprId,
+        /// The body of the loop
+        body: Vec<StatementId>,
+        /// ID of the statement
+        id: StatementId,
+    },
     /// A statement of storing data in a pointer
     Storage {
         /// The pointer to store into
@@ -64,6 +84,8 @@ impl Tagged for AstStatement {
             AstStatement::Drop { id, .. } => id,
             AstStatement::Returns { id, .. } => id,
             AstStatement::If { id, .. } => id,
+            AstStatement::For { id, .. } => id,
+            AstStatement::While { id, .. } => id
         }
     }
 }

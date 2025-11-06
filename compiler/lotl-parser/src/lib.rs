@@ -126,4 +126,35 @@ mod tests {
         eprintln!("{ast:#?}");
         assert_eq!(ast.diagnostics.len(), 0);
     }
+
+    #[test]
+    fn if_function() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { if true { return 0; } }",
+        );
+        let ast = lex(source).bind(parse);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn for_function() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { for x : list { std::io::println(x); }; }",
+        );
+        let ast = lex(source).bind(parse);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn while_function() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func main() -> i32 { while true { std::io::println(0); }; }",
+        );
+        let ast = lex(source).bind(parse);
+        eprintln!("{ast:#?}");
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
 }
