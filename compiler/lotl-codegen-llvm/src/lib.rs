@@ -38,6 +38,29 @@ mod tests {
                 eprintln!("{:#?}", x);
             })
             .map(codegen);
+        assert_eq!(ast.diagnostics.len(), 0);
+    }
+
+    #[test]
+    pub fn branching() {
+        let source = SourceFile::new(
+            "example.lotl",
+            "func start() -> i64 { \
+             if 10 {\
+                return 20;
+             };
+             return 40;\
+         }",
+        );
+        let ast = lex(source)
+            .bind(parse)
+            .fork(infer_program)
+            .peek(|x| {
+                eprintln!("{:#?}", x);
+            })
+            .map(codegen);
+        eprintln!("{:#?}", ast.diagnostics);
         eprintln!("{}", ast.output.emit());
+        assert_eq!(ast.diagnostics.len(), 0);
     }
 }

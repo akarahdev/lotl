@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlock, Instruction};
+use crate::instruction::{Instruction, SharedBasicBlock};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -53,17 +53,16 @@ impl IRComponent for Alloca {
 }
 impl Instruction for Alloca {}
 
-impl BasicBlock {
+impl SharedBasicBlock {
     /// Stores a value into the pointer.
-    pub fn store(&mut self, value: Value, pointer: Value) {
-        self.instructions
-            .push(Box::new(StoreValue { value, pointer }));
+    pub fn store(&self, value: Value, pointer: Value) {
+        self.push_instruction(Box::new(StoreValue { value, pointer }));
     }
 
     /// Loads a value from the pointer.
-    pub fn load(&mut self, ty: Type, pointer: Value) -> Value {
+    pub fn load(&self, ty: Type, pointer: Value) -> Value {
         let (name, value) = self.create_local_register(ty.clone());
-        self.instructions.push(Box::new(LoadValue {
+        self.push_instruction(Box::new(LoadValue {
             returns_in: name,
             ty,
             pointer,
@@ -72,9 +71,9 @@ impl BasicBlock {
     }
 
     /// Allocates memory on the stack of the given type.
-    pub fn alloca(&mut self, ty: Type) -> Value {
+    pub fn alloca(&self, ty: Type) -> Value {
         let (name, value) = self.create_local_register(Type::Ptr);
-        self.instructions.push(Box::new(Alloca {
+        self.push_instruction(Box::new(Alloca {
             returns_in: name,
             ty,
         }));

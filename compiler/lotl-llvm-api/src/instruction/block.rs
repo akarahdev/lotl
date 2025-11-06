@@ -1,4 +1,4 @@
-use crate::instruction::BasicBlock;
+use crate::instruction::{BasicBlock, SharedBasicBlock};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -20,25 +20,22 @@ impl BasicBlock {
         }
     }
 
-    pub(crate) fn child(parent: &BasicBlock) -> BasicBlock {
-        BasicBlock {
+    /// Creates a child of the associated block, and returns it.
+    pub fn child(parent: &SharedBasicBlock) -> SharedBasicBlock {
+        let out = SharedBasicBlock::new(BasicBlock {
             label: format!(
                 "bb{}",
-                parent.basic_block_index.fetch_add(1, Ordering::AcqRel)
+                parent
+                    .unlock_out(|x| x.basic_block_index.clone())
+                    .fetch_add(1, Ordering::AcqRel)
             ),
-            basic_block_index: parent.basic_block_index.clone(),
-            ssa_register_index: parent.ssa_register_index.clone(),
+            basic_block_index: parent.unlock_out(|x| x.basic_block_index.clone()).clone(),
+            ssa_register_index: parent.unlock_out(|x| x.ssa_register_index.clone()).clone(),
             instructions: Vec::new(),
             children: Vec::new(),
-        }
-    }
-
-    pub(crate) fn create_child<F: FnOnce(&mut BasicBlock)>(&mut self, f: F) -> String {
-        let mut bb = BasicBlock::child(self);
-        f(&mut bb);
-        let label = bb.label.clone();
-        self.children.push(bb);
-        label
+        });
+        parent.unlock(|mut x| x.children.push(out.clone()));
+        out
     }
 
     pub(crate) fn create_local_register(&self, ty: Type) -> (String, Value) {
@@ -66,7 +63,7 @@ impl IRComponent for BasicBlock {
         string.push(' ');
 
         for child in &self.children {
-            child.append_to_string(string);
+            child.unlock_out(|child| child.append_to_string(string));
         }
     }
 }

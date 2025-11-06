@@ -1,8 +1,8 @@
+use crate::stmts::CodegenContext;
 use crate::utils::ty_to_llvm;
 use lotl_ast::defs::{AstDefinition, AstDefinitionKind};
 use lotl_llvm_api::module::{FunctionBody, GlobalFunction, Module};
 use lotl_typechk::context::TyContext;
-use crate::stmts::stmts_to_bb;
 
 pub fn ast_to_header(ast: &AstDefinition, ctx: &TyContext, module: &mut Module) {
     match &ast.kind {
@@ -19,7 +19,11 @@ pub fn ast_to_header(ast: &AstDefinition, ctx: &TyContext, module: &mut Module) 
             }
             if let Some(stmts) = statements {
                 let fb = FunctionBody::new(|bb| {
-                     stmts_to_bb(stmts, bb);
+                    let mut ctx = CodegenContext {
+                        types: ctx,
+                        block: bb,
+                    };
+                    ctx.stmts_to_bb(stmts);
                 });
                 func = func.body(fb);
             }

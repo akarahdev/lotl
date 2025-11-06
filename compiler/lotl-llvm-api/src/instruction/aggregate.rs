@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlock, Instruction};
+use crate::instruction::{Instruction, SharedBasicBlock};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -70,14 +70,14 @@ impl IRComponent for GetElementPtr {
 }
 impl Instruction for GetElementPtr {}
 
-impl BasicBlock {
+impl SharedBasicBlock {
     /// Extracts a value out of the aggregate at the index.
-    pub fn extractvalue(&mut self, structure: Value, index: usize) -> Value {
+    pub fn extractvalue(&self, structure: Value, index: usize) -> Value {
         match structure.ty() {
             Type::Structure(parameters) => {
                 let (name, value) =
                     self.create_local_register(parameters.get(index).unwrap().clone());
-                self.instructions.push(Box::new(ExtractValue {
+                self.push_instruction(Box::new(ExtractValue {
                     returns_in: name,
                     structure,
                     index,
@@ -89,7 +89,7 @@ impl BasicBlock {
                     panic!("extractvalue index out of bounds");
                 }
                 let (name, value) = self.create_local_register(*element.clone());
-                self.instructions.push(Box::new(ExtractValue {
+                self.push_instruction(Box::new(ExtractValue {
                     returns_in: name,
                     structure,
                     index,
@@ -101,7 +101,7 @@ impl BasicBlock {
     }
 
     /// Inserts a value into the aggregate at the index.
-    pub fn insertvalue(&mut self, structure: Value, insertion: Value, index: usize) -> Value {
+    pub fn insertvalue(&self, structure: Value, insertion: Value, index: usize) -> Value {
         match structure.ty() {
             Type::Structure(parameters) => {
                 let (name, value) = self.create_local_register(structure.ty().clone());
@@ -112,7 +112,7 @@ impl BasicBlock {
                         insertion.ty()
                     );
                 }
-                self.instructions.push(Box::new(InsertValue {
+                self.push_instruction(Box::new(InsertValue {
                     returns_in: name,
                     structure,
                     insertion,
@@ -132,7 +132,7 @@ impl BasicBlock {
                         insertion.ty()
                     );
                 }
-                self.instructions.push(Box::new(InsertValue {
+                self.push_instruction(Box::new(InsertValue {
                     returns_in: name,
                     structure,
                     insertion,
@@ -145,7 +145,7 @@ impl BasicBlock {
     }
 
     /// Gets a pointer to the element at the aggregate at the index
-    pub fn getelementptr(&mut self, ty: Type, base: Value, indices: Vec<Value>) -> Value {
+    pub fn getelementptr(&self, ty: Type, base: Value, indices: Vec<Value>) -> Value {
         let mut param_ty: Type = ty.clone();
         for index in &indices {
             match param_ty {
@@ -165,7 +165,7 @@ impl BasicBlock {
             }
         }
         let (name, value) = self.create_local_register(Type::Ptr);
-        self.instructions.push(Box::new(GetElementPtr {
+        self.push_instruction(Box::new(GetElementPtr {
             returns_in: name,
             ty,
             base,

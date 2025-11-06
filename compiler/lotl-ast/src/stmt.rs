@@ -18,6 +18,17 @@ impl Tag for StatementId {
 /// Represents a statement in the AST.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstStatement {
+    /// A statement with branching conditions
+    If {
+        /// The condition to follow
+        cond: AstExpr,
+        /// Code to run if true
+        if_true: Vec<AstStatement>,
+        /// Code to run if false
+        otherwise: Vec<AstStatement>,
+        /// ID of the statement
+        id: StatementId
+    },
     /// A statement of storing data in a pointer
     Storage {
         /// The pointer to store into
@@ -50,7 +61,8 @@ impl Tagged<StatementId> for AstStatement {
         match self {
             AstStatement::Storage { id, .. } => id,
             AstStatement::Drop { id, .. } => id,
-            AstStatement::Returns { id, .. } => id
+            AstStatement::Returns { id, .. } => id,
+            AstStatement::If { id, .. } => id
         }
     }
 }

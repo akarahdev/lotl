@@ -1,61 +1,84 @@
 use lotl_ast::expr::{AstExpr, BinaryOperationKind};
 use lotl_ast::stmt::AstStatement;
-use lotl_llvm_api::instruction::BasicBlock;
-use lotl_llvm_api::types::Type;
+use lotl_llvm_api::instruction::{BasicBlock, SharedBasicBlock};
+use lotl_llvm_api::types::{Type, Types};
 use lotl_llvm_api::value::{Value, Values};
+use lotl_typechk::context::TyContext;
 
-pub fn stmts_to_bb(stmts: &[AstStatement], bb: &mut BasicBlock) {
-    for stmt in stmts {
-        stmt_to_bb(stmt, bb);
-    }
+pub struct CodegenContext<'a> {
+    pub types: &'a TyContext,
+    pub block: SharedBasicBlock,
 }
 
-pub fn stmt_to_bb(stmt: &AstStatement, bb: &mut BasicBlock) {
-    match stmt {
-        AstStatement::Storage { ptr, value, .. } => {
-            let target = expr_to_bb_ptr(ptr, bb);
-            let val = expr_to_bb_value(value, bb);
-            bb.store(target.1, val);
-        }
-        AstStatement::Drop { expr, .. } => {
-            expr_to_bb_value(expr, bb);
-        }
-        AstStatement::Returns { expr, .. } => {
-            let value = expr_to_bb_value(expr, bb);
-            bb.ret(value);
+impl<'a> CodegenContext<'a> {
+    pub fn stmts_to_bb(&mut self, stmts: &[AstStatement]) {
+        for stmt in stmts {
+            self.stmt_to_bb(stmt);
         }
     }
-}
 
-pub fn expr_to_bb_value(expr: &AstExpr, bb: &mut BasicBlock) -> Value {
-    match expr {
-        AstExpr::Numeric { number, id, .. } => {
-            if !number.contains('.') {
-                return Values::integer(number, 64);
+    pub fn stmt_to_bb(&mut self, stmt: &AstStatement) {
+        match stmt {
+            AstStatement::Storage { ptr, value, .. } => {
+                let target = self.expr_to_bb_ptr(ptr);
+                let val = self.expr_to_bb_value(value);
+                self.block.store(target.1, val);
             }
-            panic!("floats currently unsupported for codegen sorry")
+            AstStatement::Drop { expr, .. } => {
+                self.expr_to_bb_value(expr);
+            }
+            AstStatement::Returns { expr, .. } => {
+                let value = self.expr_to_bb_value(expr);
+                self.block.ret(value);
+            }
+            AstStatement::If {
+                cond,
+                if_true,
+                otherwise,
+                ..
+            } => {
+                let cond_val = self.expr_to_bb_value(cond);
+                let cond_trunc = self.block.trunc(cond_val, Types::integer(1));
+                let next = BasicBlock::child(&self.block);
+                let branches = self.block.br_if_returning(cond_trunc);
+                
+                self.block = branches.0;
+                self.stmts_to_bb(if_true);
+                self.block.goto(&next);
+                self.block = branches.1;
+                self.stmts_to_bb(otherwise);
+                self.block.goto(&next);
+                self.block = next;
+            }
         }
-        AstExpr::BinaryOperation {
-            op, lhs, rhs, id, ..
-        } => {
-            match op {
-                BinaryOperationKind::Add => {
-                    let lhs = expr_to_bb_value(lhs, bb);
-                    let rhs = expr_to_bb_value(rhs, bb);
-                    bb.add(lhs, rhs)
+    }
+
+    pub fn expr_to_bb_value(&mut self, expr: &AstExpr) -> Value {
+        match expr {
+            AstExpr::Numeric { number, .. } => {
+                if !number.contains('.') {
+                    return Values::integer(number, 64);
                 }
-                _ => panic!("unsupported op {op:?}")
+                panic!("floats currently unsupported for codegen sorry")
+            }
+            AstExpr::BinaryOperation { op, lhs, rhs, .. } => {
+                let lhs_val = self.expr_to_bb_value(lhs);
+                let rhs_val = self.expr_to_bb_value(rhs);
+                match op {
+                    BinaryOperationKind::Add => self.block.add(lhs_val, rhs_val),
+                    BinaryOperationKind::Subtract => self.block.sub(lhs_val, rhs_val),
+                    BinaryOperationKind::Multiply => self.block.mul(lhs_val, rhs_val),
+                    BinaryOperationKind::Divide => self.block.sdiv(lhs_val, rhs_val),
+                }
+            }
+            _ => {
+                let loaded = self.expr_to_bb_ptr(expr);
+                self.block.load(loaded.0, loaded.1)
             }
         }
-        _ => {
-            let loaded = expr_to_bb_ptr(expr, bb);
-            bb.load(loaded.0, loaded.1)
-        }
     }
-}
 
-pub fn expr_to_bb_ptr(expr: &AstExpr, bb: &mut BasicBlock) -> (Type, Value) {
-    match expr {
-        _ => panic!("unsupported converting to ptr or expr {expr:?}"),
+    pub fn expr_to_bb_ptr(&mut self, _expr: &AstExpr) -> (Type, Value) {
+        panic!("ptr conversion is not supported yet")
     }
 }

@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlock, Instruction};
+use crate::instruction::{Instruction, SharedBasicBlock};
 use crate::value::Value;
 use crate::IRComponent;
 use std::boxed::Box;
@@ -53,11 +53,11 @@ impl IRComponent for BinOp {
 }
 impl Instruction for BinOp {}
 
-impl BasicBlock {
+impl SharedBasicBlock {
     /// Add two integers together.
-    pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn add(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerAdd,
             lhs,
@@ -67,9 +67,9 @@ impl BasicBlock {
     }
 
     /// Subtract two integers.
-    pub fn sub(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn sub(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerSub,
             lhs,
@@ -79,9 +79,9 @@ impl BasicBlock {
     }
 
     /// Multiply two integers.
-    pub fn mul(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn mul(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerMul,
             lhs,
@@ -91,9 +91,9 @@ impl BasicBlock {
     }
 
     /// Perform signed division.
-    pub fn sdiv(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn sdiv(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerSignedDiv,
             lhs,
@@ -103,9 +103,9 @@ impl BasicBlock {
     }
 
     /// Perform unsigned division.
-    pub fn udiv(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn udiv(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::IntegerUnsignedDiv,
             lhs,
@@ -115,9 +115,9 @@ impl BasicBlock {
     }
 
     /// Adds two floats together.
-    pub fn fadd(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn fadd(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::FloatAdd,
             lhs,
@@ -127,9 +127,9 @@ impl BasicBlock {
     }
 
     /// Subtracts two floats.
-    pub fn fsub(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn fsub(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::FloatSub,
             lhs,
@@ -139,9 +139,9 @@ impl BasicBlock {
     }
 
     /// Multiplies two floats together.
-    pub fn fmul(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn fmul(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::FloatMul,
             lhs,
@@ -151,9 +151,9 @@ impl BasicBlock {
     }
 
     /// Divides two floats.
-    pub fn fdiv(&mut self, lhs: Value, rhs: Value) -> Value {
+    pub fn fdiv(&self, lhs: Value, rhs: Value) -> Value {
         let (name, value) = self.create_local_register(lhs.ty().clone());
-        self.instructions.push(Box::new(BinOp {
+        self.push_instruction(Box::new(BinOp {
             returns_in: name,
             operator: BinaryOperator::FloatDiv,
             lhs,

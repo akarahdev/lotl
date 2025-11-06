@@ -1,4 +1,4 @@
-use crate::instruction::{BasicBlock, Instruction};
+use crate::instruction::{BasicBlock, Instruction, SharedBasicBlock};
 use crate::types::Type;
 use crate::value::Value;
 use crate::IRComponent;
@@ -68,34 +68,43 @@ impl IRComponent for Unreachable {
 }
 impl Instruction for Unreachable {}
 
-impl BasicBlock {
+impl SharedBasicBlock {
     /// Returns void.
-    pub fn ret_void(&mut self) {
-        self.instructions.push(Box::new(Return { value: None }));
+    pub fn ret_void(&self) {
+        self.push_instruction(Box::new(Return { value: None }));
     }
 
     /// Returns the given value.
-    pub fn ret(&mut self, value: Value) {
-        self.instructions
-            .push(Box::new(Return { value: Some(value) }));
+    pub fn ret(&self, value: Value) {
+        self.push_instruction(Box::new(Return { value: Some(value) }));
     }
 
     /// Marks the end of this block unreachable.
-    pub fn unreachable(&mut self) {
-        self.instructions.push(Box::new(Unreachable));
+    pub fn unreachable(&self) {
+        self.push_instruction(Box::new(Unreachable));
     }
 
     /// Branches to the label unconditionally.
-    pub fn br<F: FnOnce(&mut BasicBlock)>(&mut self, label: F) {
+    pub fn br<F: FnOnce(SharedBasicBlock)>(&self, label: F) {
         let br = Box::new(BranchConst {
             true_label: self.create_child(label),
         });
-        self.instructions.push(br);
+        self.push_instruction(br);
+    }
+
+    /// Branches to the label unconditionally.
+    pub fn br_returning(&self) -> SharedBasicBlock {
+        let if_true = BasicBlock::child(self);
+        let br = Box::new(BranchConst {
+            true_label: if_true.unlock_out(|x| x.label.clone()),
+        });
+        self.push_instruction(br);
+        if_true
     }
 
     /// Branches to the basic block if true, otherwise goes to the false label.
-    pub fn br_if<F1: FnOnce(&mut BasicBlock), F2: FnOnce(&mut BasicBlock)>(
-        &mut self,
+    pub fn br_if<F1: FnOnce(SharedBasicBlock), F2: FnOnce(SharedBasicBlock)>(
+        &self,
         value: Value,
         true_label: F1,
         false_label: F2,
@@ -105,7 +114,28 @@ impl BasicBlock {
             true_label: self.create_child(true_label),
             false_label: self.create_child(false_label),
         });
-        self.instructions.push(br);
+        self.push_instruction(br);
+    }
+
+    /// Branches to the basic block if true, otherwise goes to the false label.
+    pub fn br_if_returning(&self, value: Value) -> (SharedBasicBlock, SharedBasicBlock) {
+        let if_true = BasicBlock::child(self);
+        let if_false = BasicBlock::child(self);
+        let br = Box::new(BranchCond {
+            cond: value,
+            true_label: if_true.unlock_out(|x| x.label.clone()),
+            false_label: if_false.unlock_out(|x| x.label.clone()),
+        });
+        self.push_instruction(br);
+        (if_true, if_false)
+    }
+
+    /// Branches to the specified basic block.
+    pub fn goto(&self, block: &SharedBasicBlock) {
+        let br = Box::new(BranchConst {
+            true_label: block.unlock_out(|x| x.label.clone()),
+        });
+        self.push_instruction(br);
     }
 }
 

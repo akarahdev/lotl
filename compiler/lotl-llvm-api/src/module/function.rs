@@ -1,4 +1,4 @@
-use crate::instruction::BasicBlock;
+use crate::instruction::{BasicBlock, SharedBasicBlock};
 use crate::module::{LinkageType, ModuleComponent};
 use crate::types::Type;
 use crate::IRComponent;
@@ -68,7 +68,7 @@ impl IRComponent for GlobalFunction {
         self.body.iter().for_each(|body| {
             string.push('{');
             string.push(' ');
-            body.entry.append_to_string(string);
+            body.entry.unlock(|x| x.append_to_string(string));
             string.push('}');
         })
     }
@@ -78,17 +78,17 @@ impl ModuleComponent for GlobalFunction {}
 
 /// Represents a function body in LLVM IR.
 pub struct FunctionBody {
-    entry: BasicBlock,
+    entry: SharedBasicBlock,
 }
 
 impl FunctionBody {
     /// Creates a new function body. This gives you a reference to a Basic Block, which is
     /// the entrypoint of the function body.
-    pub fn new<F: FnOnce(&mut BasicBlock)>(handler: F) -> Self {
-        let mut f = FunctionBody {
-            entry: BasicBlock::entry("entry"),
+    pub fn new<F: FnOnce(SharedBasicBlock)>(handler: F) -> Self {
+        let f = FunctionBody {
+            entry: SharedBasicBlock::new(BasicBlock::entry("entry")),
         };
-        handler(&mut f.entry);
+        handler(f.entry.clone());
         f
     }
 }
@@ -96,7 +96,7 @@ impl FunctionBody {
 impl IRComponent for FunctionBody {
     fn append_to_string(&self, string: &mut String) {
         string.push('{');
-        self.entry.append_to_string(string);
+        self.entry.unlock(|x| x.append_to_string(string));
         string.push('}');
     }
 }

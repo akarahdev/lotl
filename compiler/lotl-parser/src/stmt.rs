@@ -11,7 +11,31 @@ impl Parser {
                 let expr = self.parse_expr();
                 AstStatement::Returns {
                     expr,
-                    id: StatementId::make_new()
+                    id: StatementId::make_new(),
+                }
+            }
+            TokenKind::IfKeyword => {
+                self.next();
+                let cond = self.parse_expr();
+
+                let mut if_true = Vec::new();
+                if let TokenKind::Braces(block_tokens) = &self.peek().kind {
+                    self.next();
+                    if_true = self
+                        .parse_delimited_series(
+                            block_tokens.clone(),
+                            TokenKind::Semicolon,
+                            Parser::parse_stmt,
+                        )
+                        .into_iter()
+                        .collect();
+                }
+
+                AstStatement::If {
+                    cond,
+                    if_true,
+                    otherwise: vec![],
+                    id: StatementId::make_new(),
                 }
             }
             _ => AstStatement::Drop {

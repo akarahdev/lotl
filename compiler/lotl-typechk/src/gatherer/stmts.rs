@@ -19,6 +19,20 @@ impl<'a> TypeGatherer<'a> {
                 AstStatement::Returns { expr, .. } => {
                     self.infer_expr(stack, expr);
                 }
+                AstStatement::If {
+                    cond,
+                    if_true,
+                    otherwise,
+                    ..
+                } => {
+                    self.infer_expr(stack, cond);
+                    stack.push_frame();
+                    self.infer_stmts(stack, if_true.as_ref());
+                    stack.pop_frame();
+                    stack.push_frame();
+                    self.infer_stmts(stack, otherwise.as_ref());
+                    stack.pop_frame();
+                }
             }
         }
         stack.pop_frame();
